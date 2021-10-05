@@ -1,18 +1,28 @@
-# DSS deployment scripts
-![Build Status](https://github.com/makerdao/dss-deploy-scripts/actions/workflows/.github/workflows/tests.yaml/badge.svg?branch=master)
+# H20 deployment scripts
+![Build Status](https://github.com/stablecoin-research/H20-deploy-scripts/actions/workflows/.github/workflows/tests.yaml/badge.svg?branch=master)
 
-A set of scripts that deploy [dss](http://github.com/makerdao/dss) to an
-Ethereum chain of your choosing.
+A set of scripts that deploy  the whole H20  core system contracts and helpers []() to an
+Ethereum chain of your choosing. this then  is used by the testchain to allow the SDK to interact with the  contracts for running the application .
 
 ## Description
 
-This repo is composed of two steps:
+This repo is composed of following main components:
 
-* Bash [scripts](/scripts) to modify the state of the base system
+* Bash [scripts](/scripts) to set the enviornment variables  of the base system.
+
+* [Dependency of core contracts](/deps) for  providing the necessary contracts  to be deployed on the mainnet . 
+
+
+* [Whole deployment schedule](/libexec)  : these scripts  consist of the whole logic of setting up the contracts with the default system parameters , and then setting up the 
+
+for the first time  mainnet deployment , the  values are to be referenced from file like  config-H20-params.json . it will be stored as `$CONFIG_FILE` in the given
+
 
 At the end of the first step, the addresses of deployed contracts are written to
-an `out/addresses.json` file. The scripts read those addresses and use `seth`
-and `dapp` to modify the deployment, using the values in `out/config.json`.
+an `testchain-H20/out/addresses.json` file. The scripts read those addresses and use `seth`
+and `dapp` to modify the deployment, using the values in `testchain-H20/out/config.json`.
+
+
 
 ## Installing
 
@@ -51,6 +61,18 @@ But you can also configure the below variables manually:
 - `ETH_KEYSTORE`: keystore path
 - `ETH_RPC_URL`: URL of the RPC node
 
+
+
+## Libexec : 
+
+- these form the core scripts that define the actual workflow of defining the contracts on the 
+
+## parameters to be set
+
+
+
+
+
 ### Chain configuration
 
 Some networks have a default config file at `config/<NETWORK>.json`, which will be used if non custom config values are set.
@@ -58,104 +80,6 @@ A config file can be passed via param with flag `-f` allowing to execute the scr
 As other option, custom config values can be loaded as an environment variable called `DDS_CONFIG_VALUES`.
 File passed by parameter overwrites the environment variable.
 
-Below is the expected structure of such a config file:
-
-```
-{
-  "description": "",
-  "omniaFromAddr": "<Address being used by Omnia Service (only for testchain)>",
-  "omniaAmount": "<Amount in ETH to be sent to Omnia Address (only for testchain)>",
-  "pauseDelay": "<Delay of Pause contract in seconds>",
-  "vat_line": "<General debt ceiling in DAI unit>",
-  "vow_wait": "<Flop delay in seconds>",
-  "vow_sump": "<Flop fixed bid size in DAI unit>",
-  "vow_dump": "<Flop initial lot size in MKR unit>",
-  "vow_bump": "<Flap fixed lot size in DAI unit>",
-  "vow_hump": "<Flap Surplus buffer in DAI unit>",
-  "cat_box": "<Max total DAI needed to cover all debt plus penalty fees on active Flip auctions in DAI unit>",
-  "dog_hole": "<Max total DAI needed to cover all debt plus penalty fees on active Clip auctions in DAI unit>",
-  "jug_base": "<Base component of stability fee in percentage per year (e.g. 2.5)>",
-  "pot_dsr": "<Dai Savings Rate in percentage per year (e.g. 2.5)>",
-  "end_wait": "<Global Settlement cooldown period in seconds>",
-  "esm_pit": "<Pit address to send MKR to be burnt when ESM is fired>",
-  "esm_min": "<Minimum amount to trigger ESM in MKR unit>",
-  "flap_beg": "<Minimum bid increase in percentage (e.g. 5.5)>",
-  "flap_ttl": "<Max time between bids in seconds>",
-  "flap_tau": "<Max auction duration in seconds>",
-  "flop_beg": "<Minimum bid increase in percentage (e.g. 5.5)>",
-  "flop_pad": "<Increase of lot size after `tick` in percentage (e.g. 50)>",
-  "flop_ttl": "<Max time between bids in seconds>",
-  "flop_tau": "<Max auction duration in seconds>",
-  "flash_max": "<Max DAI can be borrowed from flash loan module in DAI unit (e.g. 1000000)>",
-  "flash_toll": "<Fee being charged from amount being borrow via flash loan module in percentage (e.g 0.1%)>",
-  import: {
-    "gov": "<GOV token address (if there is an existing one to import)>",
-    "authority": "<Authority address (if there is an existing one to import)>",
-    "proxyRegistry": "<Proxy Registry address (if there is an existing one to import)>",
-    "faucet": "<Faucet address (if there is an existing one to import)>"
-  },
-  "tokens": {
-    "<ETH|COL>": {
-      "import": {
-        "gem": "<Gem token address (if there is an existing one to import)>",
-        "pip": "<Price feed address (if there is an existing one to import)>"
-      },
-      "gemDeploy": { // Only used if there is not a gem imported
-        "src": "<REPO/CONTRACT (e.g. dss-gem-joins/GemJoin2)>",
-        "params": [<Any params to be passed to the constructor of the token in its native form (e.g. amounts in wei or strings in hex encoding)>],
-        "faucetSupply": "<Amount of token to be transferred to the faucet>",
-        "faucetAmount": "<Amount of token to be obtained in each faucet gulp (only if a new faucet is deployed)>"
-      },
-      "joinDeploy": { // Mandatory always
-        "src": "<GemJoin/GemJoin2/GemJoinX>",
-        "extraParams": [<Any extra params to be passed to the constructor of the join in its native form (e.g. amounts in wei or strings in hex encoding)>]
-      },
-      "pipDeploy": { // Only used if there is not a pip imported
-        "osmDelay": "<Time in seconds for the OSM delay>",
-        "type": "<median|value>",
-        "price": "<Initial oracle price (only if type == "value")>",
-        "signers": [
-            <Set of signer addreeses (only if type == "median")>
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "<Liquidation ratio value in percentage (e.g. 150)>",
-          "line": "<Debt ceiling value in DAI unit (won't be used if autoLine is > 0)>",
-          "autoLine": "<Max debt ceiling value in DAI unit (for DssAutoLine IAM)>",
-          "autoLineGap": "<Value to set the ceiling over the current ilk debt in DAI unit (for DssAutoLine IAM)>",
-          "autoLineTtl": "<Time between debt ceiling increments (for DssAutoLine IAM)>",
-          "dust": "<Min amount of debt a CDP can hold in DAI unit>"
-          "duty": "<Collateral component of stability fee in percentage per year (e.g. 2.5)>",
-          "flipDeploy": {
-            "chop": "<Liquidation penalty value in percentage (e.g. 12.5)>",
-            "dunk": "<Liquidation Quantity in DAI Unit>",
-            "beg": "<Minimum bid increase in percentage (e.g. 5.5)>",
-            "ttl": "<Max time between bids in seconds>",
-            "tau": "<Max auction duration in seconds>"
-          },
-          "clipDeploy": { // Will be used only if there isn't a flipDeploy
-            "chop": "<Liquidation penalty value in percentage (e.g. 12.5)>",
-            "hole": "<Max DAI needed to cover debt+fees of active auctions per ilk (e.g. 100,000 DAI)>",
-            "chip": "<Percentage of due to suck from vow to incentivize keepers (e.g. 2%)>",
-            "tip": "<Flat fee to suck from vow to incentivize keepers (e.g. 100 DAI)>",
-            "buf": "<Multiplicative factor to increase starting price (e.g. 125%)>",
-            "tail": "<Time elapsed before auction reset in seconds>",
-            "cusp": "<Percentage taken for the new price before auction reset (e.g. 30%)>",
-            "calc": {
-              "type": "LinearDecrease/StairstepExponentialDecrease/ExponentialDecrease",
-              "tau":  "<Time after auction start when the price reaches zero in seconds (LinearDecrease)>",
-              "step": "<Length of time between price drops in seconds (StairstepExponentialDecrease)>",
-              "cut":  "<Percentage to be taken as new price per step (e.g. 99%, which is 1% drop) (StairstepExponentialDecrease/ExponentialDecrease)>"
-            },
-            "cm_tolerance": "<Percentage of previous price which a drop would enable anyone to be able to circuit break the liquidator via ClipperMom (e.g. 50%)>"
-          }
-        }
-      }
-    }
-  }
-}
-```
 
 ## Default config files
 
@@ -175,13 +99,10 @@ The only case currently available is:
 
 - `crash-bite`
 
-### Deploy on Kovan with default config file
+### Deploy on Kovan (or mainnet) with default config file
 
-`dss-deploy kovan`
+`dss-deploy kovan / main `
 
-### Deploy on Mainnet with default config file
-
-`dss-deploy main`
 
 ### Deploy on any network passing a custom config file
 
@@ -240,11 +161,11 @@ To clone smart contract dependencies into working directory run:
 dapp2nix clone-recursive contracts
 ```
 
-## Additional Documentation
+## Additional Documentation and great references 
 
 - `dss-deploy` [source code](https://github.com/makerdao/dss-deploy)
 - `dss` is documented in the [wiki](https://github.com/makerdao/dss/wiki) and in [DEVELOPING.md](https://github.com/makerdao/dss/blob/master/DEVELOPING.md)
 
-## TODO
 
-- More cases to test scenarios for testchain script
+
+

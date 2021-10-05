@@ -20,6 +20,8 @@
 
 # Deploy Multicall
 newChangelog=false
+# TODO: change the changelog logic  to store in local folder  as artifacts in JSON format , which we can then commit to the github .
+
 CHANGELOG=$(jq -r ".import.chainlog | values" "$CONFIG_FILE")
 if [[ -z "$CHANGELOG" ]]; then
     CHANGELOG=$(dappCreate dss-chain-log-optimized ChainLog)
@@ -30,8 +32,10 @@ else
 fi
 export CHANGELOG
 
-# Deploy Values or Medians
+# Deploy  the oracle module and medianizer contract
+
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+
 for token in $tokens; do
     pipAddr=$(jq -r ".tokens.${token} | .import.pip | values" "$CONFIG_FILE")
     if [[ "$pipAddr" == "" ]]; then

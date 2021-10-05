@@ -20,6 +20,8 @@
 
 # Get config variables
 CONFIG_FILE="$OUT_DIR/config.json"
+CONFIG_H20_FILE ="$OUT_DIR/config-H20-params.json"
+
 # Get addresses
 loadAddresses
 
@@ -44,7 +46,7 @@ notok() {
 
 checkRely() {
     local CHECK
-    CHECK=$(seth call "${!1}" 'wards(address)' "${!2}")
+    CHECK=$(seth call "${!1}" 'administrative(address)' "${!2}")
 
     printf "RELY: %s -> %s -> %s -> " "${1}" "${2}" "${3}"
     if [[ $(toLower "${!3}") == $(toLower "${CHECK}") ]]; then
@@ -56,7 +58,7 @@ checkRely() {
 
 checkAuthority() {
     local CHECK
-    CHECK=$(seth call "${!1}" 'authority()(address)')
+    CHECK=$(seth call "${!1}" 'authorizedAccounts(address)')
 
     printf "AUTH: %s -> %s -> " "${1}" "${2}"
     if [[ $(toLower "${!2}") == $(toLower "${CHECK}") ]]; then
@@ -106,7 +108,7 @@ canCall() {
 
 checkWhitelist() {
     local CHECK
-    CHECK=$(seth call "${!1}" 'bud(address)(uint256)' "${!2}" | sed 's/^0*//')
+    CHECK=$(seth call "${!1}" 'authorizedAccounts(address)(uint256)' "${!2}" | sed 's/^0*//')
 
     printf "WHITELIST: %s -> %s -> " "${1}" "${2}"
     if [[ "$CHECK" == 1 ]]; then
@@ -115,7 +117,7 @@ checkWhitelist() {
         notok
     fi
 }
-
+# trying to set the oracle security module .
 checkInOsmMom() {
     local CHECK
     CHECK=$(seth call "$OSM_MOM" 'osms(bytes32)(address)' "$(seth --to-bytes32 "$(seth --from-ascii "${1}")")")
@@ -130,7 +132,7 @@ checkInOsmMom() {
 
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 
-# vat
+# Safe 
 checkRely "MCD_VAT" "MCD_DEPLOY" "NOT_AUTHED"
 checkRely "MCD_VAT" "MCD_CAT" "AUTHED"
 checkRely "MCD_VAT" "MCD_JUG" "AUTHED"

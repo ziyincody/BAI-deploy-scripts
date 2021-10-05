@@ -31,7 +31,8 @@ if [[ -z "$NONCE_TMP_FILE" && -n "$ETH_FROM" ]]; then
     trap clean EXIT
 fi
 
-# arg: the name of the config file to write
+# arg: the name of the config file to write.
+
 writeConfigFor() {
     # Clean out directory
     rm -rf "$OUT_DIR" && mkdir "$OUT_DIR"

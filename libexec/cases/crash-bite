@@ -21,29 +21,31 @@
 loadAddresses
 
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+
+# for us there will 
 for token in $tokens; do
-    type=$(jq -r ".tokens.${token} | .pipDeploy | .type" "$CONFIG_FILE")
-    if [[ "$type" == "value" ]]; then # Takes the first token which its pip is a value (not a median, so can be manipulated easily)
+    type=$(jq -r ".tokens.${token} | .OracleDeploy | .type" "$CONFIG_FILE")
+    if [[ "$type" == "value" ]]; then # Takes the first token which its oracle  is a value (not a median,for manipulated easily)
         break
     fi
 done
 
-ilk=$(jq -r ".tokens.${token}.ilks | keys_unsorted[0]" "$CONFIG_FILE")
+ilk=$(jq -r ".tokens.${token}.CollateralTypes | keys_unsorted[0]" "$CONFIG_FILE")
 
-sethSend "$CDP_MANAGER" 'open(bytes32,address)' "$(seth --to-bytes32 "$(seth --from-ascii "${token}-${ilk}")")" "$ETH_FROM"
-ID=$(seth call "$CDP_MANAGER" 'cdpi()(uint256)')
-URN=$(seth call "$CDP_MANAGER" 'urns(uint256)(address)' "$ID")
+sethSend "$SAFE_MANAGER" 'open(bytes32,address)' "$(seth --to-bytes32 "$(seth --from-ascii "${token}-${ilk}")")" "$ETH_FROM"
+ID=$(seth call "$SAFE_MANAGER" 'cdpi()(uint256)')
+URN=$(seth call "$SAFE_MANAGER" 'urns(uint256)(address)' "$ID")
 
 if [[ "${token}" == "ETH" ]]; then
     sethSend "$ETH" 'deposit()' --value "$(seth --to-wei 5 ETH)"
 fi
 
-sethSend "$(eval echo "\$$token")" "approve(address,uint256)" "$(eval echo "\$MCD_JOIN_${token}_${ilk}")" "$(seth --to-uint256 "$(seth --to-wei 5 ETH)")"
+sethSend "$(eval echo "\$$token")" "approve(address,uint256)" "$(eval echo "\$MCD_JOIN_${token}_${collateralTypes}")" "$(seth --to-uint256 "$(seth --to-wei 5 ETH)")"
 
 sethSend "$(eval echo "\$MCD_JOIN_${token}_${ilk}")" 'join(address,uint256)' "$URN" "$(seth --to-uint256 "$(seth --to-wei 5 ETH)")"
 
 dink=$(seth --to-int256 "$(seth --to-wei 5 eth)")
-mat=$(jq -r ".tokens.${token}.ilks.${ilk} | .mat" "$CONFIG_FILE")
+mat=$(jq -r ".tokens.${token}.ilks.${CollateralType} | .mat" "$CONFIG_FILE")
 price=$(jq -r ".tokens.${token} | .pipDeploy | .price" "$CONFIG_FILE")
 dart=$(seth --to-int256 "$(seth --to-wei "$(echo "5 * $price * 100 / $mat" | bc -l)" eth)") # Max debt amount
 
@@ -51,7 +53,7 @@ dart=$(seth --to-int256 "$(seth --to-wei "$(echo "5 * $price * 100 / $mat" | bc 
 
 sethSend "$MCD_SPOT" 'poke(bytes32)' "$(seth --to-bytes32 "$(seth --from-ascii "${token}-${ilk}")")"
 
-sethSend "$CDP_MANAGER" 'frob(uint256,int256,int256)' "$ID" "$dink" "$dart"
+sethSend "$SAFE_MANAGER" 'frob(uint256,int256,int256)' "$ID" "$dink" "$dart"
 
 "$LIBEXEC_DIR"/setters/set-price "$token" "$(echo "$price - 1" | bc -l)"
 sethSend "$MCD_SPOT" 'poke(bytes32)' "$(seth --to-bytes32 "$(seth --from-ascii "${token}-${ilk}")")"

@@ -1,0 +1,83 @@
+{
+    "description": "parameters for deploying geb core contracts and associated modules  ",
+    "OracleAddress": "<Address being used by Omnia Service (only for testchain)>",
+    "OracleAmount": "<Amount in ETH to be sent to Omnia Address (only for testchain)>",
+    "pauseDelay": "<Delay of ds-pause con in seconds>",
+    "globalDebtCeiling": "<max debt ceiling of the safe unit >",
+    "popDebtDelay": "<AccountingEngine.popDebtDelay  in seconds>",
+    "debtAuctionBidSize": "<Auction module debt collateral fixed bid size in DAI unit>",
+    "initialDebtAuctionMintedTokens": "<Flop initial lot size in MKR unit>",
+    "surplusAuctionAmountToSell": "<Flap fixed lot size in DAI unit>",
+    "surplusBuffer": "< Surplus buffer in DAI unit>",
+    "onAuctionSystemCoinLimit": "<Max total DAI needed to cover all debt plus penalty fees on active Flip auctions in DAI unit>",
+    "": "<Max total DAI needed to cover all debt plus penalty fees on active collateral auctions in DAI unit>",
+    "globalStabilityFee": "<Base component of stability fee in percentage per year (e.g. 2.5) for the TaxCollector >",
+    "savingsRate": "<CoinSavingsRate   in percentage per year (e.g. 2.5)>",
+    "end_wait": "<Global Settlement cooldown period in seconds( generally its 1 day)>",
+    "esm_pit": "<Pit address to send H20 to be burnt when emergency module  is fired>",
+    "esm_min": "<Minimum amount to trigger ESM in H20 unit>",
+    "bidIncrease": "<Minimum bid increase in percentage (e.g. 5.5) for the SurplusAuctionHouse >",
+    "bidDurationSurplusAuction": "<Max time between  surplus auctions bids in seconds>",
+    "totalAuctionLength": "<Max  surplus auction duration in seconds>",
+    "bidDecrease": "<Minimum bid increase in percentage (e.g. 5.5) for the debt auction house >",
+    "amountSoldIncreaseSurplusAuction": "<Increase of lot size after `tick` in percentage (e.g. 50)>",
+    "bidDurationDebtAuction": "<Max time between  debt auction bids in seconds>",
+    "totalAuctionLengthDebtAuction": "<Max auction duration in seconds>",
+    "flash_max": "<Max DAI can be borrowed from flash loan module ( in H20 , referencing geb-keeper-flash-proxy)>",
+    "flash_toll": "refernece of the parameters from geb-keeper-flash-proxy>",
+    "import": {
+      "gov": "AQA minting address (if already deployed)",
+      "authority": "<Authority address (defined with the authorisation as defined in geb-protocol-token-authority/ProtocolTokenAuthority)>",
+      "proxyRegistry": "<Proxy Registry address deployed via module https://github.com/reflexer-labs/geb-proxy-registry/blob/master/src/GebProxyRegistry.sol>",
+      "faucet": "<Faucet address after geb-token-faucet/TokenFaucet.sol is being deployed >"
+    },
+
+    "GebDeploy": {
+      
+      "src": "H20-testchain/out/H20-deploy",
+      "params": [],
+      "fees" : "fees to be paid from ETH_FROM in order to deploy the fees",
+    "tokens": {
+      "CollateralToken": {
+        "import": {
+          "CollateralTokenAddress": "<collateral token address  (0x967da4048cD07aB37855c090aAF366e4ce1b9F48 on  rinkeby)>",
+          "PriceFeed": "<0x7ece4e4E206eD913D991a074A19C192142726797 on the mainnet >"
+        },
+        "ProtocolToken": {
+          "src": "address of deployed contract geb-deploy/AdvancedTokenAdapters.sol",
+          "params": [],
+          "faucetSupply": "<Amount of token to be transferred to the faucet>",
+          "faucetAmount": "<Amount of token to be obtained in each faucet gulp (only if a new faucet is deployed)>"
+        },
+        "CollateralJoin2": { // Mandatory always
+          "src": "address of deployed contract geb-deploy/AdvancedTokenAdapters/CollateralJoin2.sol",
+          "extraParams": ["address SafeEngine" , " bytes32 collateralType" , " address collateral" , "uint256 flashloanFee" , "address feeReceiver"]
+        },
+        "OracleDeploy": { 
+          "osmDelay": "<Time in seconds for the OSM delay>",
+          "type": "<median|value>",
+          "price": "<Initial oracle price (only if type == "value")>",
+          "signers": [
+             " <Set of signer addreeses (only if type == median)> , checkout the https://github.com/makerdao/developerguides/blob/master/devtools/working-with-dsproxy/working-with-dsproxy.md for example  "
+          ]
+        },
+        "CollateralType": {
+          "OCEAN-A": {
+            "liquidationRatio": "Liquidation Ratio (145% being defined in system).",
+            "DebtCeiling": "<Debt ceiling value of the whole collateral in DAI unit (won't be used if autoLine is > 0)>",
+            "globalDebtCeiling": "for global debt ceiling >",
+            "debtFloor ": "<Min amount of debt a safe can hold (in DAI)>",
+            "duty": "stability fees of safe  in percentage per year (e.g. 2.5)>",
+            "LiquidationDeployParams": {
+              "LiquidationPenalty": "<Liquidation penalty value in percentage (e.g. 12.5)>",
+              "LiquidationQuantity": "< in DAI Unit>",
+              "bidIncrease": "<Minimum bid increase in percentage (e.g. 5.5)>",
+              "bidDuration": "<Max time between bids in seconds>",
+              "totalAuctionLength": "<Max auction duration in seconds>"
+            }
+          }
+        }
+      }
+    }
+  }
+}

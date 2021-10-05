@@ -46,7 +46,8 @@ export ETH_GAS=7000000
 
 export ETH_FROM="${ETH_FROM:-$(seth ls | head -n1 | awk '{print $1}')}"
 
-# For dai.js tests
+# For H20.js tests
+## here the sethret is the package from  : https://github.com/icetan/sethret/  to retrive the password key from either the .env for the 
 if command -v sethret > /dev/null 2>&1; then
   find_keyfile() {
     local address
