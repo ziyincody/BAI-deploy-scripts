@@ -15,6 +15,13 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
+
+
+##. NOT NEEDED for now ( script to deploy and use flash mint module here: https://docs.makerdao.com/smart-contract-modules/flash-mint-module )
+
+
+
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
 

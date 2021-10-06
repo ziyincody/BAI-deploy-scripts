@@ -23,13 +23,11 @@ CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
 loadAddresses
 
-log "SET CAT BOX:"
+log "SET Debt Ceiling Of Accounting Engine :"
 
-# Set general debt ceiling (if defined)
-box=$(jq -r ".cat_box | values" "$CONFIG_FILE")
-if [[ "$box" != "" && "$box" != "0" ]]; then
-    box=$(echo "$box"*10^45 | bc)
-    box=$(seth --to-uint256 "${box%.*}")
-    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_CAT" "$(seth --to-bytes32 "$(seth --from-ascii "box")")" "$box")"
+# Set general debt ceiling (as defined as debt limit for the safe here : https://docs.reflexer.finance/current-system-parameters  )
+wait=$(jq -r ".vow_wait | values" "$CONFIG_FILE")
+if [[ "$wait" != "" ]]; then
+    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$H20_PAUSE" "$H20_GOV_ACTIONS" "$H20_VOW" "$(seth --to-bytes32 "$(seth --from-ascii "wait")")" "$wait")"
     sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
 fi

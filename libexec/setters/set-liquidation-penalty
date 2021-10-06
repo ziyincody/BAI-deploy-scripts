@@ -23,11 +23,14 @@ CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
 loadAddresses
 
-log "SET VOW WAIT:"
+# set liquidation parameters .
+#  as defined here https://github.com/makerdao/dss/blob/master/src/dog.sol#L67 , this is closely mapped with the liquidation quantity of the collateral shown here (https://docs.reflexer.finance/current-system-parameters#liquidationengine)
+log "SET DOG HOLE:"
 
-# Set general debt ceiling (if defined)
-wait=$(jq -r ".vow_wait | values" "$CONFIG_FILE")
-if [[ "$wait" != "" ]]; then
-    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_VOW" "$(seth --to-bytes32 "$(seth --from-ascii "wait")")" "$wait")"
+Hole=$(jq -r ".dog_hole | values" "$CONFIG_FILE")
+if [[ "$Hole" != "" && "$Hole" != "0" ]]; then
+    Hole=$(echo "$Hole"*10^45 | bc)
+    Hole=$(seth --to-uint256 "${Hole%.*}")
+    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_DOG" "$(seth --to-bytes32 "$(seth --from-ascii "Hole")")" "$Hole")"
     sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
 fi

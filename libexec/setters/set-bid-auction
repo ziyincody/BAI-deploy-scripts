@@ -23,13 +23,17 @@ CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
 loadAddresses
 
-log "SET FLOP PAD:"
+{ test "$1" != "AuctionHouse" && test "$1" != "DebtAuction"; } && exit 1
 
-# Set flop pad
-pad=$(jq -r ".flop_pad | values" "$CONFIG_FILE")
-if [[ "$pad" != "" ]]; then
-    pad=$(echo "($pad+100)"*10^16 | bc -l)
-    pad=$(seth --to-uint256 "${pad%.*}")
-    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_FLOP" "$(seth --to-bytes32 "$(seth --from-ascii "pad")")" "$pad")"
+log "SET $(toUpper "$1") bidIncrease (or bid decrease in case of the debt auction):"
+
+# Set  the % of the minimum bid increase / decrease (based on the type of the auction house to be deployed) . 
+
+beg=$(jq -r ".$1_beg | values" "$CONFIG_FILE")
+
+if [[ "$beg" != "" ]]; then
+    beg=$(echo "($beg+100)"*10^16 | bc -l)
+    beg=$(seth --to-uint256 "${beg%.*}")
+    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$H20_PAUSE" "$GEB_GOV_ACTIONS" "$(eval echo "\$H20_$(toUpper "$1")")" "$(seth --to-bytes32 "$(seth --from-ascii "beg")")" "$beg")"
     sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
 fi

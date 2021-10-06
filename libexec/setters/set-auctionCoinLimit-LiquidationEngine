@@ -23,13 +23,13 @@ CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
 loadAddresses
 
-log "SET VOW SUMP:"
+log "SET LIQUIDATIONENGINE  AUCTION SYSTEM COIN LIMIT :"
 
-# Set general debt ceiling (if defined)
-sump=$(jq -r ".vow_sump" "$CONFIG_FILE")
-if [[ "$sump" != "" ]]; then
-    sump=$(echo "$sump"*10^45 | bc)
-    sump=$(seth --to-uint256 "${sump%.*}")
-    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_VOW" "$(seth --to-bytes32 "$(seth --from-ascii "sump")")" "$sump")"
+# Set general debt ceiling  for the liquidation engine (https://docs.reflexer.finance/current-system-parameters#liquidationengine).
+box=$(jq -r ".cat_box | values" "$CONFIG_FILE")
+if [[ "$box" != "" && "$box" != "0" ]]; then
+    box=$(echo "$box"*10^45 | bc)
+    box=$(seth --to-uint256 "${box%.*}")
+    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$H20_PAUSE" "$H20_GOV_ACTIONS" "$H20_CAT" "$(seth --to-bytes32 "$(seth --from-ascii "box")")" "$box")"
     sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
 fi
