@@ -19,6 +19,14 @@ in mkShell {
     export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
     unset SSL_CERT_FILE
 
+  export SETH_CHAIN=ethlive
+  # export ETH_FROM=f5808c41c895d88ca8103b5147b5f0e2c910d5a3
+  # export ETH_RPC_URL=https://eth-kovan.alchemyapi.io/v2/we7JjRdw2d-UvwuGVOSdkbQ28u8_On-0
+  # export ETH_KEYSTORE=./secrets
+  export ETH_FROM=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+  export ETH_RPC_ACCOUNTS=yes
+  export ETH_RPC_URL=http://localhost:8545
+
     setup-env() {
       . ${dds}/lib/setup-env.sh
     }

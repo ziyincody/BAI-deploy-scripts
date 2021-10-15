@@ -37,7 +37,7 @@ if [ -z "$MCD_ADM" ]
 then
     MCD_ADM=$(dappCreate ds-roles DSRoles)
     logAddr "MCD_ADM" "$MCD_ADM"
-    sethSend "$MCD_ADM" 'setRootUser(address,bool)' "$ETH_FROM" true
+    sethSend "$MCD_ADM" 'setRootUser(address, bool)' "$ETH_FROM" true
 fi
 
 # Deploy VAT
