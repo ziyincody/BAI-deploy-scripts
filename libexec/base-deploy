@@ -96,7 +96,7 @@ if [[ -z "$GEB_PROT" ]]; then
 else
     export GEB_MULTISIG
 fi
-GEB_MULTISIG_PROXY="$(sethSend "$PROXY_FACTORY" "build(address)" "$GEB_MULTISIG")"
+GEB_MULTISIG_PROXY="$(sethSend "$PROXY_REGISTRY" "build(address)" "$GEB_MULTISIG")"
 
 # Deploy Fabs
 "$LIBEXEC_DIR/H20-core/deploy-fab"
