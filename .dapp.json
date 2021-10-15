@@ -396,7 +396,7 @@
       "repo": {
         "name": "ds-vote-quorum-5d685e8",
         "ref": "HEAD",
-        "rev": "5d685e862e62fddc309e3d49160f1d579ecd08bf",
+        "rev": "b9ccf624df19f80fbc2c132555c8ad135ddd5240",
         "url": "https://github.com/reflexer-labs/ds-vote-quorum"
       }
     },
@@ -436,7 +436,7 @@
       "repo": {
         "name": "ds-weth-8bf60f2",
         "ref": "HEAD",
-        "rev": "8bf60f252ab5338342a97fc72683fcdb31b51f55",
+        "rev": "74210ef689fd3b179fc9a1d8ef7dfb0bdcdde76a",
         "url": "https://github.com/reflexer-labs/ds-weth"
       }
     },
@@ -584,7 +584,7 @@
       "deps": {
         "ds-auth": "ds-auth_462d441",
         "ds-guard": "ds-guard_cd36e6c",
-        "ds-pause": "ds-pause_8364b73",
+        "ds-pause": "ds-pause_28076a5",
         "ds-value": "ds-value_7747a89",
         "ds-weth": "ds-weth_8bf60f2",
         "esm": "esm_704780c",
@@ -630,7 +630,7 @@
         "geb-collateral-auction-throttler": "geb-collateral-auction-throttler_058fc25",
         "geb-debt-ceiling-setter": "geb-debt-ceiling-setter_6f3a065",
         "geb-debt-popper-rewards": "geb-debt-popper-rewards_1a7eff9",
-        "geb-deploy": "geb-deploy_9837d61",
+        "geb-deploy": "geb-deploy_1511de4",
         "geb-esm-threshold-setter": "geb-esm-threshold-setter_1512f3e",
         "geb-fsm": "geb-fsm_ff83ea8",
         "geb-rrfm-calculators": "geb-rrfm-calculators_74f2f68",
@@ -778,7 +778,6 @@
       "ds-roles": "ds-roles_c8cf240",
       "ds-token": "ds-token_229ec71",
       "ds-value": "ds-value_5aaf162",
-      "ds-vote-quorum": "ds-vote-quorum_8413266",
       "dss-chain-log": "dss-chain-log_83e7a01",
       "erc20": "erc20_562dab5",
       "geb": "geb_7db6846",
@@ -786,6 +785,7 @@
       "geb-deploy": "geb-deploy_1511de4",
       "geb-fsm": "geb-fsm_ff83ea8",
       "geb-governance-actions": "geb-governance-actions_f1944fa",
+
       "geb-polling-emitter": "geb-polling-emitter_83e00fc",
       "geb-proxy-registry": "geb-proxy-registry_6d662fd",
       "multicall": "multicall_0b779cc"
