@@ -23,8 +23,11 @@
 # eval "export VAL_${token}=${contract}"
 # logAddr "VAL_${token}" "$(eval "echo ${contract}")"
 
-    echo "$BIN_DIR/contracts/$lib/out"
-    echo "$ETH_NONCE"
+echo "$BIN_DIR/contracts/$lib/out"
+echo "$ETH_NONCE"
+eval "export UNISWAP_FACTORY=${contract}"
+eval "export UNISWAP_FACTORY=0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+eval "export UNISWAP_ROUTER=0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
 # Deploy  the oracle module and medianizer contract
 
@@ -98,6 +101,26 @@ else
 fi
 GEB_MULTISIG_PROXY="$(sethSend "$PROXY_REGISTRY" "build(address)" "$GEB_MULTISIG")"
 
+
+# ================== Peripherials ===========================
+
+# deploy TokenBurner
+GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
+
+GEB_POLLING_EMITTER="$(dappCreate geb-polling-emitter GebPollingEmitter)"
+GEB_GOV_ACTIONS="$(dappCreate geb-deploy GovActions)"
+GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
+
+PROXY_ACTIONS="$(dappCreate geb-proxy-actions GebProxyActions)"
+PROXY_ACTIONS_INCENTIVES="$(dappCreate geb-proxy-actions GebProxyIncentivesActions)"
+PROXY_ACTIONS_GLOBAL_SETTLEMENT="$(dappCreate geb-proxy-actions GebProxyActionsGlobalSettlement)"
+PROXY_DEBT_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxyDebtAuctionActions)"
+PROXY_SURPLUS_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxySurplusAuctionActions)"
+PROXY_SAVIOUR_ACTIONS="$(dappCreate geb-proxy-actions GebProxySaviourActions)"
+PROXY_PAUSE_SCHEDULE_ACTIONS="$(dappCreate geb-pause-schedule-proxy-actions GebPauseScheduleProxyActions )"
+PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseProxyActions )"
+
+
 # Deploy Fabs
 "$LIBEXEC_DIR/H20-core/deploy-fab"
 # shellcheck source=/dev/null
@@ -141,13 +164,6 @@ if [[ "$newGovToken" == true ]]; then
     # # Set root to MCD_PAUSE_PROXY
     # sethSend "$GOV_GUARD" 'setRoot(address)' "$MCD_PAUSE_PROXY"
 fi
-
-# ================== Peripherials ===========================
-
-GEB_POLLING_EMITTER="$(dappCreate geb-polling-emitter GebPollingEmitter)"
-GEB_GOV_ACTIONS="$(dappCreate geb-deploy GovActions)"
-GEB_GOV_ACTIONS="$(dappCreate geb-pit TokenBurner)"
-
 
 
 # ================== Core ===========================
@@ -203,6 +219,33 @@ sethSend "$GEB_AUTH" 'setRootUser(address, bool)' "$GEB_PAUSE" true
 sethSend "$GEB_DEPLOY" 'giveControl(address)' "$GEB_PAUSE"
 
 
+# ================== Peripherials ===========================
+
+# ## Kp, periodSize, noiseBarrier, feedbackOutputUpperBound, feedbackOutputLowerBound(-(10^27-1))
+# GEB_RRFM_CALCULATOR="$(dappCreate geb-rrfm-calculators PRawPerSecondCalculator "1000000000000000000" "3600" "1000000000000000000" "1000000000000000000000000000000000000000000000" "0xfffffffffffffffffffffffffffffffffffffffffcc4d1c3602f7fc318000001")"
+# ## address oracleRelayer_, address treasury_, uint256 baseUpdateCallerReward_, uint256 maxUpdateCallerReward_, uint256 perSecondCallerRewardIncrease_, uint256 relayDelay_
+# GEB_RRFM_SETTER_RELAYER="$(dappCreate geb-rrfm-rate-setter SetterRelayer "$GEB_ORACLE_RELAYER" "$GEB_STABILITY_FEE_TREASURY" "5000000000000000000" "10000000000000000000" "1000192559420674483977255848" "3600")"
+# ## address oracleRelayer_, address setterRelayer_, address orcl_, address pidCalculator_, uint256 updateRateDelay_
+# GEB_RRFM_SETTER="$(dappCreate geb-rrfm-rate-setter PIRateSetter "$GEB_ORACLE_RELAYER" "$GEB_RRFM_SETTER_RELAYER" "<UniswapConsecutiveSlotsPriceFeedMedianizer>" "$GEB_RRFM_CALCULATOR" "3600")"
+
+
+GEB_SAFE_MANAGER="$(dappCreate geb-safe-manager GebSafeManager "$GEB_SAFE_ENGINE")"
+GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
+
+FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface )"
+
+# saveCooldown
+SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
+
+## address converterFeed_, address uniswapFactory_, uint256 defaultAmountIn_, uint256 windowSize_, uint256 converterFeedScalingFactor_, uint256 maxWindowSize_, uint8   granularity_
+# MEDIANIZER_RAI="$(dappCreate geb-uniswap-median UniswapConsecutiveSlotsPriceFeedMedianizer "3600")"
+
+
+
+
+
+# ================== Core ===========================
+
 
 WETH_JOIN="$(dappCreate geb-deploy CollateralJoin1 0x0000000000000000000000000000000000000000 "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" $WETH)"
 
@@ -241,6 +284,26 @@ cat > "$OUT_DIR"/addresses.json <<EOF
     "GEB_MULTISIG_PROXY": "$(seth --to-checksum-address "$GEB_MULTISIG_PROXY")",
     "GEB_POLLING_EMITTER": "$(seth --to-checksum-address "$GEB_POLLING_EMITTER")",
     "GEB_GOV_ACTIONS": "$(seth --to-checksum-address "$GEB_GOV_ACTIONS")",
+    "GEB_ESM_TOKEN_BURNER": "$(seth --to-checksum-address "$GEB_ESM_TOKEN_BURNER")",
+    "PROXY_ACTIONS": "$(seth --to-checksum-address "$PROXY_ACTIONS")",
+    "PROXY_ACTIONS_INCENTIVES": "$(seth --to-checksum-address "$PROXY_ACTIONS_INCENTIVES")",
+    "PROXY_ACTIONS_GLOBAL_SETTLEMENT": "$(seth --to-checksum-address "$PROXY_ACTIONS_GLOBAL_SETTLEMENT")",
+    "PROXY_DEBT_AUCTION_ACTIONS": "$(seth --to-checksum-address "$PROXY_DEBT_AUCTION_ACTIONS")",
+    "PROXY_SURPLUS_AUCTION_ACTIONS": "$(seth --to-checksum-address "$PROXY_SURPLUS_AUCTION_ACTIONS")",
+    "PROXY_SAVIOUR_ACTIONS": "$(seth --to-checksum-address "$PROXY_SAVIOUR_ACTIONS")",
+    "GEB_SAFE_MANAGER": "$(seth --to-checksum-address "$GEB_SAFE_MANAGER")",
+    "GET_SAFES": "$(seth --to-checksum-address "$GET_SAFES")",
+    "PROXY_PAUSE_SCHEDULE_ACTIONS": "$(seth --to-checksum-address "$PROXY_PAUSE_SCHEDULE_ACTIONS")",
+    "PROXY_PAUSE_ACTIONS": "$(seth --to-checksum-address "$PROXY_PAUSE_ACTIONS")",
+    "FSM_GOV_INTERFACE": "$(seth --to-checksum-address "$FSM_GOV_INTERFACE")",
+    "SAFE_SAVIOUR_REGISTRY": "$(seth --to-checksum-address "$SAFE_SAVIOUR_REGISTRY")",
+    
+    
+    
+    
+    "GEB_RRFM_CALCULATOR": "$(seth --to-checksum-address "$GEB_RRFM_CALCULATOR")",
+    "GEB_RRFM_SETTER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER")",
+    "GEB_RRFM_SETTER_RELAYER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER_RELAYER")",
 
 
 

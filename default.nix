@@ -59,6 +59,8 @@ let
     # dss = deps'.dss                                 // { name = "dss";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_12; };
     # geb = deps'.geb                                 // { name = "geb";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_7; };
     geb-deploy = deps'.geb-deploy                   // { name = "geb-deploy";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_7; };
+    geb-proxy-actions = deps'.geb-proxy-actions                   // { name = "geb-proxy-actions";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_7; };
+    geb-pause-schedule-proxy-actions = deps'.geb-pause-schedule-proxy-actions                   // { name = "geb-pause-schedule-proxy-actions";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_7; };
     # erc20 = deps'.erc20                   // { name = "erc20";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_4_20; };
   });
 
