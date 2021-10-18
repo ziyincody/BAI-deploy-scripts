@@ -99,7 +99,7 @@ if [[ -z "$GEB_PROT" ]]; then
 else
     export GEB_MULTISIG
 fi
-GEB_MULTISIG_PROXY="$(sethSend "$PROXY_REGISTRY" "build(address)" "$GEB_MULTISIG")"
+#GEB_MULTISIG_PROXY="$(sethSend "$PROXY_REGISTRY" "build(address)" "$GEB_MULTISIG")"
 
 
 # ================== Peripherials ===========================
@@ -247,10 +247,10 @@ SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600"
 # ================== Core ===========================
 
 
-WETH_JOIN="$(dappCreate geb-deploy CollateralJoin1 0x0000000000000000000000000000000000000000 "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" $WETH)"
+GEB_JOIN_ETH_A="$(dappCreate geb-deploy CollateralJoin1 0x0000000000000000000000000000000000000000 "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" $WETH)"
 
 
-sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ENGLISH")")" "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" "$WETH_JOIN" "$WETH" "0x0000000000000000000000000000000000000000"
+sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ENGLISH")")" "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" "$GEB_JOIN_ETH_A" "$WETH" "0x0000000000000000000000000000000000000000"
 sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" "$GEB_PAUSE"
 
 echo "$GEB_SAFE_ENGINE"
@@ -274,7 +274,7 @@ cat > "$OUT_DIR"/addresses.json <<EOF
     "GEB_GLOBAL_SETTLEMENT": "$(seth --to-checksum-address "$GEB_GLOBAL_SETTLEMENT")",
     "GEB_ESM": "$(seth --to-checksum-address "$GEB_ESM")",
     "GEB_PAUSE": "$(seth --to-checksum-address "$GEB_PAUSE")",
-    "WETH_JOIN": "$(seth --to-checksum-address "$WETH_JOIN")",
+    "GEB_JOIN_ETH_A": "$(seth --to-checksum-address "$GEB_JOIN_ETH_A")",
     "PROXY_REGISTRY": "$(seth --to-checksum-address "$PROXY_REGISTRY")",
     "PROXY_FACTORY": "$(seth --to-checksum-address "$PROXY_FACTORY")",
     "PROXY_DEPLOYER": "$(seth --to-checksum-address "$PROXY_DEPLOYER")",
