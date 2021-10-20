@@ -17,7 +17,7 @@
 
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
-
+#/nix/store/ff5d6f2wfmyiadhwy310kd2inb56a6az-H20-deploy-scripts-solidity-packages/dapp
 # sethSend "$(eval echo "\$VAL_${token}")" 'setBar(uint256)' "$(seth --to-uint256 3)"
 # contract=$(dappCreate ds-value DSValue)
 # eval "export VAL_${token}=${contract}"
@@ -99,6 +99,7 @@ if [[ -z "$GEB_PROT" ]]; then
 else
     export GEB_MULTISIG
 fi
+GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
 #GEB_MULTISIG_PROXY="$(sethSend "$PROXY_REGISTRY" "build(address)" "$GEB_MULTISIG")"
 
 
@@ -173,8 +174,8 @@ sethSend "$GEB_PROT" 'mint(uint256)' "100000000000000000000"
 
 GEB_DEPLOY=$(dappCreate geb-deploy GebDeploy)
 
-GEB_AUTH="$(dappCreate ds-roles DSRoles)"
-sethSend "$GEB_AUTH" 'setRootUser(address, bool)' "$GEB_DEPLOY" true
+GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
+sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_DEPLOY" true
 
 sethSend "$GEB_DEPLOY" "setFirstFactoryBatch(address,address,address,address,address,address,address)" "$SAFEENGINE_FAB" "$TAXCOLLECTOR_FAB" "$ACCOUNTINGENGINE_FAB" "$LIQUIDATIONENGINE_FAB" "$COIN_FAB" "$COINJOIN_FAB" "$COINSAVINGSACCOUNT_FAB"
 sethSend "$GEB_DEPLOY" "setSecondFactoryBatch(address,address,address,address,address,address,address,address)" "$RECYCLINGSURPLUSAUCTIONHOUSE_FAB" "$BURNINGSURPLUSAUCTIONHOUSE_FAB" "$DEBTAUCTIONHOUSE_FAB" "$ENGLISHCOLLATERALAUCTIONHOUSE_FAB" "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB" "$ORACLERELAYER_FAB" "$GLOBALSETTLEMENT_FAB" "$ESM_FAB"
@@ -189,7 +190,7 @@ sethSend "$GEB_DEPLOY" 'deployStabilityFeeTreasury()'
 sethSend "$GEB_DEPLOY" 'deployLiquidator()'
 sethSend "$GEB_DEPLOY" 'deployShutdown(address, address, address, uint256)' "$GEB_PROT" "0x0000000000000000000000000000000000000000" "0x0000000000000000000000000000000000000000" "10"
 
-sethSend "$GEB_DEPLOY" 'deployPause(uint256, address)' "0" "$GEB_AUTH"
+sethSend "$GEB_DEPLOY" 'deployPause(uint256, address)' "0" "$GEB_PAUSE_AUTHORITY"
 
 eval "export VAL_DEPLOY=${contract}"
 
@@ -215,7 +216,7 @@ GEB_PAUSE="$(seth call "$GEB_DEPLOY" "pause()(address)")"
 GEB_PROTEST_PAUSE="$(seth call "$GEB_DEPLOY" "protestPause()(address)")"
 
 
-sethSend "$GEB_AUTH" 'setRootUser(address, bool)' "$GEB_PAUSE" true
+sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_MULTISIG" true
 sethSend "$GEB_DEPLOY" 'giveControl(address)' "$GEB_PAUSE"
 
 
@@ -247,11 +248,11 @@ SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600"
 # ================== Core ===========================
 
 
-GEB_JOIN_ETH_A="$(dappCreate geb-deploy CollateralJoin1 0x0000000000000000000000000000000000000000 "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" $WETH)"
+GEB_JOIN_ETH_A="$(dappCreate geb-deploy CollateralJoin1 "$GEB_SAFE_ENGINE" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" $WETH)"
 
 
-sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ENGLISH")")" "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" "$GEB_JOIN_ETH_A" "$WETH" "0x0000000000000000000000000000000000000000"
-sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ETH")")" "$GEB_PAUSE"
+sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ENGLISH")")" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_JOIN_ETH_A" "$WETH" "0x0000000000000000000000000000000000000000"
+sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_PAUSE"
 
 echo "$GEB_SAFE_ENGINE"
 echo "$WETH"
@@ -291,7 +292,7 @@ cat > "$OUT_DIR"/addresses.json <<EOF
     "PROXY_DEBT_AUCTION_ACTIONS": "$(seth --to-checksum-address "$PROXY_DEBT_AUCTION_ACTIONS")",
     "PROXY_SURPLUS_AUCTION_ACTIONS": "$(seth --to-checksum-address "$PROXY_SURPLUS_AUCTION_ACTIONS")",
     "PROXY_SAVIOUR_ACTIONS": "$(seth --to-checksum-address "$PROXY_SAVIOUR_ACTIONS")",
-    "GEB_SAFE_MANAGER": "$(seth --to-checksum-address "$GEB_SAFE_MANAGER")",
+    "SAFE_MANAGER": "$(seth --to-checksum-address "$GEB_SAFE_MANAGER")",
     "GET_SAFES": "$(seth --to-checksum-address "$GET_SAFES")",
     "PROXY_PAUSE_SCHEDULE_ACTIONS": "$(seth --to-checksum-address "$PROXY_PAUSE_SCHEDULE_ACTIONS")",
     "PROXY_PAUSE_ACTIONS": "$(seth --to-checksum-address "$PROXY_PAUSE_ACTIONS")",
