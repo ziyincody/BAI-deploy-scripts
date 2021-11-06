@@ -55,19 +55,20 @@ while getopts "c:f:" opt; do
       ;;
     esac
 done
-
+echo $LIB_DIR
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
 
 writeConfigFor "$1"
 
 # Send ETH to Omnia Relayer
-OMNIA_ADDR="$(jq -r ".omniaFromAddr" "$CONFIG_FILE")"
-OMNIA_AMT="$(jq -r ".omniaAmount" "$CONFIG_FILE")"
-if [[ "$RPC_CHAIN" == "testchain" && -n "$OMNIA_ADDR" && -n "$OMNIA_AMT" ]]; then
-    sethSend "$OMNIA_ADDR" --value "$(seth --to-wei "$OMNIA_AMT" eth)"
-fi
+# OMNIA_ADDR="$(jq -r ".omniaFromAddr" "$CONFIG_FILE")"
+# OMNIA_AMT="$(jq -r ".omniaAmount" "$CONFIG_FILE")"
+# if [[ "$RPC_CHAIN" == "testchain" && -n "$OMNIA_ADDR" && -n "$OMNIA_AMT" ]]; then
+#     #sethSend "$OMNIA_ADDR" --value "$(seth --to-wei "$OMNIA_AMT" eth)"
+# fi
 
+echo $LIBEXEC_DIR
 "$LIBEXEC_DIR"/base-deploy |& tee "$OUT_DIR/dss-$1.log"
 
 NETWORK=$(toUpper "$1")

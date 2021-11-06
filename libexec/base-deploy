@@ -32,6 +32,8 @@ eval "export UNISWAP_ROUTER=0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 # Deploy  the oracle module and medianizer contract
 
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+# Deploy Multicall
+MULTICALL=$(dappCreate multicall Multicall)
 
 for token in $tokens; do
     pipAddr=$(jq -r ".tokens.${token} | .import.pip | values" "$CONFIG_FILE")
@@ -59,15 +61,13 @@ for token in $tokens; do
         fi
     else
         eval "export VAL_${token}=${pipAddr}"
-        #copy osm
+        copy osm
         #copy testchain-medians
         logAddr "VAL_${token}" "$pipAddr"
     fi
     eval "export PIP_${token}=\$VAL_${token}"
 done
 
-# Deploy Multicall
-MULTICALL=$(dappCreate multicall Multicall)
 
 # Deploy ProxyRegistry
 PROXY_REGISTRY=$(jq -r ".import.proxyRegistry | values" "$CONFIG_FILE")
@@ -81,6 +81,7 @@ else
     copy geb-proxy-registry
 fi
 
+
 # Get a proxy for the deployer address (create if didn't previously exist)
 PROXY_DEPLOYER=$(seth call "$PROXY_REGISTRY" 'proxies(address)(address)' "$ETH_FROM")
 if [[ "$PROXY_DEPLOYER" == "0x0000000000000000000000000000000000000000" ]]; then
@@ -89,13 +90,13 @@ if [[ "$PROXY_DEPLOYER" == "0x0000000000000000000000000000000000000000" ]]; then
 fi
 
 
-WETH="$(dappCreate geb-deploy WETH9_)" #"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" # kovan - "0xd0a1e359811322d97991e03f863a0c30c2cf029c"
+WETH="$(dappCreate h20-deploy WETH9_)" #"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" # kovan - "0xd0a1e359811322d97991e03f863a0c30c2cf029c"
 sethSend "$WETH" --value 500000000000000000
 
 # create multisig
 GEB_MULTISIG=$(jq -r ".import.multisig | values" "$CONFIG_FILE")
 if [[ -z "$GEB_PROT" ]]; then
-    GEB_MULTISIG="$(dappCreate geb-basic-multisig MultiSigWallet "[$ETH_FROM]" "1" )"
+    GEB_MULTISIG="$(dappCreate geb-basic-multisig MultiSigWallet "[$ETH_FROM]" "1")"
 else
     export GEB_MULTISIG
 fi
@@ -109,7 +110,7 @@ GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
 GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
 
 GEB_POLLING_EMITTER="$(dappCreate geb-polling-emitter GebPollingEmitter)"
-GEB_GOV_ACTIONS="$(dappCreate geb-deploy GovActions)"
+GEB_GOV_ACTIONS="$(dappCreate h20-deploy GovActions)"
 GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
 
 PROXY_ACTIONS="$(dappCreate geb-proxy-actions GebProxyActions)"
@@ -118,8 +119,8 @@ PROXY_ACTIONS_GLOBAL_SETTLEMENT="$(dappCreate geb-proxy-actions GebProxyActionsG
 PROXY_DEBT_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxyDebtAuctionActions)"
 PROXY_SURPLUS_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxySurplusAuctionActions)"
 PROXY_SAVIOUR_ACTIONS="$(dappCreate geb-proxy-actions GebProxySaviourActions)"
-PROXY_PAUSE_SCHEDULE_ACTIONS="$(dappCreate geb-pause-schedule-proxy-actions GebPauseScheduleProxyActions )"
-PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseProxyActions )"
+PROXY_PAUSE_SCHEDULE_ACTIONS="$(dappCreate geb-pause-schedule-proxy-actions GebPauseScheduleProxyActions)"
+PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseProxyActions)"
 
 
 # Deploy Fabs
@@ -172,13 +173,13 @@ fi
 
 sethSend "$GEB_PROT" 'mint(uint256)' "100000000000000000000"
 
-GEB_DEPLOY=$(dappCreate geb-deploy GebDeploy)
+GEB_DEPLOY=$(dappCreate h20-deploy GebDeploy)
 
 GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
 sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_DEPLOY" true
 
 sethSend "$GEB_DEPLOY" "setFirstFactoryBatch(address,address,address,address,address,address,address)" "$SAFEENGINE_FAB" "$TAXCOLLECTOR_FAB" "$ACCOUNTINGENGINE_FAB" "$LIQUIDATIONENGINE_FAB" "$COIN_FAB" "$COINJOIN_FAB" "$COINSAVINGSACCOUNT_FAB"
-sethSend "$GEB_DEPLOY" "setSecondFactoryBatch(address,address,address,address,address,address,address,address)" "$RECYCLINGSURPLUSAUCTIONHOUSE_FAB" "$BURNINGSURPLUSAUCTIONHOUSE_FAB" "$DEBTAUCTIONHOUSE_FAB" "$ENGLISHCOLLATERALAUCTIONHOUSE_FAB" "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB" "$ORACLERELAYER_FAB" "$GLOBALSETTLEMENT_FAB" "$ESM_FAB"
+sethSend "$GEB_DEPLOY" "setSecondFactoryBatch(address,address,address,address,address,address,address,address,address)" "$RECYCLINGSURPLUSAUCTIONHOUSE_FAB" "$BURNINGSURPLUSAUCTIONHOUSE_FAB" "$DEBTAUCTIONHOUSE_FAB" "$ENGLISHCOLLATERALAUCTIONHOUSE_FAB" "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB" "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB" "$ORACLERELAYER_FAB" "$GLOBALSETTLEMENT_FAB" "$ESM_FAB"
 sethSend "$GEB_DEPLOY" "setThirdFactoryBatch(address,address,address)" "$PAUSE_FAB" "$PROTESTPAUSE_FAB" "$STABILITYFEETREASURY_FAB"
 
 sethSend "$GEB_DEPLOY" 'deploySAFEEngine()'
@@ -233,7 +234,7 @@ sethSend "$GEB_DEPLOY" 'giveControl(address)' "$GEB_PAUSE"
 GEB_SAFE_MANAGER="$(dappCreate geb-safe-manager GebSafeManager "$GEB_SAFE_ENGINE")"
 GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
 
-FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface )"
+FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface)"
 
 # saveCooldown
 SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
@@ -245,18 +246,15 @@ SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600"
 
 
 
-# ================== Core ===========================
+# GEB_JOIN_ETH_A="$(dappCreate geb-deploy CollateralJoin1 "$GEB_SAFE_ENGINE" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" $WETH)"
 
 
-GEB_JOIN_ETH_A="$(dappCreate geb-deploy CollateralJoin1 "$GEB_SAFE_ENGINE" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" $WETH)"
+# sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ENGLISH")")" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_JOIN_ETH_A" "$WETH" "0x0000000000000000000000000000000000000000"
+# sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_PAUSE"
 
-
-sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ENGLISH")")" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_JOIN_ETH_A" "$WETH" "0x0000000000000000000000000000000000000000"
-sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_PAUSE"
-
-echo "$GEB_SAFE_ENGINE"
-echo "$WETH"
-echo GEB_SAFE_ENGINE
+# echo "$GEB_SAFE_ENGINE"
+# echo "$WETH"
+# echo GEB_SAFE_ENGINE
 # Generate addresses.json file
 # shellcheck disable=SC2153
 cat > "$OUT_DIR"/addresses.json <<EOF
@@ -275,14 +273,12 @@ cat > "$OUT_DIR"/addresses.json <<EOF
     "GEB_GLOBAL_SETTLEMENT": "$(seth --to-checksum-address "$GEB_GLOBAL_SETTLEMENT")",
     "GEB_ESM": "$(seth --to-checksum-address "$GEB_ESM")",
     "GEB_PAUSE": "$(seth --to-checksum-address "$GEB_PAUSE")",
-    "GEB_JOIN_ETH_A": "$(seth --to-checksum-address "$GEB_JOIN_ETH_A")",
     "PROXY_REGISTRY": "$(seth --to-checksum-address "$PROXY_REGISTRY")",
     "PROXY_FACTORY": "$(seth --to-checksum-address "$PROXY_FACTORY")",
     "PROXY_DEPLOYER": "$(seth --to-checksum-address "$PROXY_DEPLOYER")",
     "MULTICALL": "$(seth --to-checksum-address "$MULTICALL")",
     "GEB_DEPLOY": "$(seth --to-checksum-address "$GEB_DEPLOY")",
     "GEB_MULTISIG": "$(seth --to-checksum-address "$GEB_MULTISIG")",
-    "GEB_MULTISIG_PROXY": "$(seth --to-checksum-address "$GEB_MULTISIG_PROXY")",
     "GEB_POLLING_EMITTER": "$(seth --to-checksum-address "$GEB_POLLING_EMITTER")",
     "GEB_GOV_ACTIONS": "$(seth --to-checksum-address "$GEB_GOV_ACTIONS")",
     "GEB_ESM_TOKEN_BURNER": "$(seth --to-checksum-address "$GEB_ESM_TOKEN_BURNER")",
@@ -298,22 +294,31 @@ cat > "$OUT_DIR"/addresses.json <<EOF
     "PROXY_PAUSE_ACTIONS": "$(seth --to-checksum-address "$PROXY_PAUSE_ACTIONS")",
     "FSM_GOV_INTERFACE": "$(seth --to-checksum-address "$FSM_GOV_INTERFACE")",
     "SAFE_SAVIOUR_REGISTRY": "$(seth --to-checksum-address "$SAFE_SAVIOUR_REGISTRY")",
-    
-    
-    
-    
-    "GEB_RRFM_CALCULATOR": "$(seth --to-checksum-address "$GEB_RRFM_CALCULATOR")",
-    "GEB_RRFM_SETTER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER")",
-    "GEB_RRFM_SETTER_RELAYER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER_RELAYER")",
-
-
-
     "GEB_PROTEST_PAUSE": "$(seth --to-checksum-address "$GEB_PROTEST_PAUSE")",
     "GEB_COIN_SAVINGS_ACCOUNT": "$(seth --to-checksum-address "$GEB_COIN_SAVINGS_ACCOUNT")",
     "GEB_BURNING_SURPLUS_AUCTION_HOUSE": "$(seth --to-checksum-address "$GEB_BURNING_SURPLUS_AUCTION_HOUSE")",
     "GEB_RECYCLING_SURPLUS_AUCTION_HOUSE": "$(seth --to-checksum-address "$GEB_RECYCLING_SURPLUS_AUCTION_HOUSE")",
 }
 EOF
+
+
+    
+    # "GEB_MULTISIG_PROXY": "$(seth --to-checksum-address "$GEB_MULTISIG_PROXY")",
+    # "GEB_JOIN_ETH_A": "$(seth --to-checksum-address "$GEB_JOIN_ETH_A")",
+    # "GEB_RRFM_CALCULATOR": "$(seth --to-checksum-address "$GEB_RRFM_CALCULATOR")",
+    # "GEB_RRFM_SETTER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER")",
+    # "GEB_RRFM_SETTER_RELAYER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER_RELAYER")",
+
+
+
+
+# ================== Core ===========================
+
+"$LIBEXEC_DIR"/H20-core/deploy-collaterals
+
+"$LIBEXEC_DIR"/H20-setters/set-collateral-auction-params
+
+"$LIBEXEC_DIR"/H20-setters/set-tax-collector-params
 
         # // Set SAFEEngine Params
         # this.modifyParameters(address(safeEngine), bytes32("globalDebtCeiling"), uint(10000 * 10 ** 45));

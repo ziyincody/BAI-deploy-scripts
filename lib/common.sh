@@ -107,10 +107,49 @@ dappCreate() {
     local lib; lib=$1
     local class; class=$2
     ETH_NONCE=$(cat "$NONCE_TMP_FILE")
-    DAPP_OUT="$DAPP_LIB/$lib/out" ETH_NONCE="$ETH_NONCE" dapp create "$class" "${@:3}"
+    echo "===================" >> run.log
+
+    # mapfile -t contracts < <(<"$DAPP_JSON" jq '.contracts|keys[]' -r)
+    REAL_PATH="$(find "$DAPP_LIB/$lib/out" \
+        -name "dapp.sol.json" \
+        -type l -ls | sed 's/.*-> //g' | grep dapp.sol.json | sed 's/\/out\/dapp\.sol\.json//g')"
+    CONTRACT_PATH="$(<"$DAPP_LIB/$lib/out/dapp.sol.json" jq -c '.contracts|keys[]' -r | grep ":$class$")"
+        #-exec cp -f {} "$DIR" \;
+    echo "$DAPP_LIB/$lib/out" >> run.log
+    echo "$CONTRACT_PATH" >> run.log
+    echo "===================" >> run.log
+    address=$(DAPP_OUT="$DAPP_LIB/$lib/out" ETH_NONCE="$ETH_NONCE" dapp create "$class" "${@:3}")
+    echo "$REAL_PATH\t$CONTRACT_PATH\t$address" >> env.log
+    ( cd "$REAL_PATH"; set +o pipefail ; dapp verify-contract "$CONTRACT_PATH" $address "${@:3}" | true ) &> /dev/null &
     echo $((ETH_NONCE + 1)) > "$NONCE_TMP_FILE"
     copy "$lib"
+    echo "$address"
 }
+
+
+# verify() {
+#     set -e
+#     local lib; lib=$1
+#     local class; class=$2
+#     ETH_NONCE=$(cat "$NONCE_TMP_FILE")
+#     echo "===================" >> run.log
+
+#     # mapfile -t contracts < <(<"$DAPP_JSON" jq '.contracts|keys[]' -r)
+#     REAL_PATH="$(find "$DAPP_LIB/$lib/out" \
+#         -name "dapp.sol.json" \
+#         -type l -ls | sed 's/.*-> //g' | grep dapp.sol.json | sed 's/\/out\/dapp\.sol\.json//g')"
+#     CONTRACT_PATH="$(<"$DAPP_LIB/$lib/out/dapp.sol.json" jq -c '.contracts|keys[]' -r | grep ":$class$")"
+#         #-exec cp -f {} "$DIR" \;
+#     echo "$DAPP_LIB/$lib/out" >> run.log
+#     echo "$CONTRACT_PATH" >> run.log
+#     echo "===================" >> run.log
+#     address=$(DAPP_OUT="$DAPP_LIB/$lib/out" ETH_NONCE="$ETH_NONCE" dapp create "$class" "${@:3}")
+#     echo "$REAL_PATH\t$CONTRACT_PATH\t$address" >> env.log
+#     ( cd "$REAL_PATH"; set +o pipefail ; dapp verify-contract "$CONTRACT_PATH" $address "${@:3}" | true ) &> /dev/null &
+#     echo $((ETH_NONCE + 1)) > "$NONCE_TMP_FILE"
+#     copy "$lib"
+#     echo "$address"
+# }
 
 sethSend() {
     set -e
@@ -135,7 +174,7 @@ log() {
 }
 
 logAddr() {
-    sethSend "$CHANGELOG" 'setAddress(bytes32,address)' "$(seth --to-bytes32 "$(seth --from-ascii "$1")")" "$2"
+    #sethSend "$CHANGELOG" 'setAddress(bytes32,address)' "$(seth --to-bytes32 "$(seth --from-ascii "$1")")" "$2"
     printf '%b\n' "${GREEN}${1}=${2}${NC}"
     echo ""
 }
@@ -152,7 +191,7 @@ toLower() {
 # set -x
 
 # Set exported variables
-export ETH_GAS=12500000
+export ETH_GAS=9000000
 unset SOLC_FLAGS
 
 export OUT_DIR=${OUT_DIR:-$PWD/out}

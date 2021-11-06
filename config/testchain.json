@@ -1,1153 +1,346 @@
 {
-  "description": "Testchain Deployment",
-  "omniaFromAddr": "0xdc9A20F5a46AFE0802b361076BeFC51f787B2e58",
-  "omniaAmount": "10000",
-  "pauseDelay": "0",
-  "vat_line": "1000000",
-  "vow_wait": "0",
-  "vow_dump": "0.01",
-  "vow_sump": "0.1",
-  "vow_bump": "0.1",
-  "vow_hump": "0",
-  "cat_box": "10000",
-  "dog_hole": "10000",
-  "jug_base": "0",
-  "pot_dsr": "1",
-  "end_wait": "0",
-  "esm_min": "50000",
-  "flap_beg": "5",
-  "flap_ttl": "10800",
-  "flap_tau": "172800",
-  "flop_beg": "5",
-  "flop_pad": "50",
-  "flop_ttl": "10800",
-  "flop_tau": "172800",
-  "flash_max": "500000000",
-  "flash_toll": "0.05",
+  "description": "testnet deployment of H20 protocol",
+  "import": {
+    "esm_threshold_setter": "0x0000000000000000000000000000000000000000",
+    "faucet": "0x0000000000000000000000000000000000000000",
+    "uniswap_factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+    "uniswap_router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+  },
+  "uniswap": {
+    "coin_to_deposit_pool": "800",
+    "coin_borrow_c_ratio": "380",
+    "coin_token_profile_index": "0"
+  },
+  "printing_permissions": {
+    "deploy": "0",
+    "unrevokableRightsCooldown": "1209600",
+    "denyRightsCooldown": "1209600",
+    "addRightsCooldown": "172800"
+  },
+  "incentives": {
+    "deploy": "1"
+  },
+  "safe_scenario": {
+    "type": "NULL",
+    "collateral_amount": "0.5",
+    "liquidate": "true",
+    "safe_count": "3"
+  },
+  "protocol_token": {
+    "deploy": "1",
+    "symbol": "AQA",
+    "name": "AQA governance Token",
+    "type": "Delegate",
+    "oracle_deploy": {
+      "deploy": "0",
+      "type": "UniswapConsecutiveSlots",
+      "fsm_addr": "",
+      "median_addr": "",
+      "integration": "",
+      "quorum": "1",
+      "fsm_delay": "3600",
+      "strategy": "median",
+      "sub_strategy": "OSM",
+      "price": "100",
+      "dsm_deviation": "0.90",
+      "chainlink": {
+        "base_caller_reward": "0",
+        "period_size": "3600",
+        "max_caller_reward": "10",
+        "reward_increase": "100",
+        "reward_increase_timeline": "3600",
+        "max_reward_increase_delay": "10800"
+      },
+      "uniswap": {
+        "denomination_token_symbol": "OCEAN",
+        "denomination_token_address": "",
+        "default_amount_in": "1000000000000000000",
+        "window_size": "259200",
+        "max_window_size": "432000",
+        "converter_feed_scaling_factor": "1000000000000000000",
+        "granularity": "168",
+        "base_caller_reward": "0",
+        "max_caller_reward": "5",
+        "reward_increase": "100",
+        "reward_increase_timeline": "3600",
+        "max_reward_increase_delay": "10800"
+      },
+      "signers": [
+        ""
+      ]
+    }
+  },
+  "pause": {
+    "type": "PROTEST",
+    "set_owner": "1",
+    "pause_delay": "0",
+    "protester_lifetime": "15",
+    "delay_multiplier": "3"
+  },
+  "safe_engine": {
+    "global_debt_ceiling": "-1", 
+    "safe_debt_ceiling": "10000000000"
+  },
+  "ds_vote_quorum": {
+    "max_candidates_per_ballot": "5"
+  },
+  "accounting_engine": {
+    "pop_debt_delay": "1036800",
+    "surplus_auction_delay": "0",
+    "initial_debt_auction_minted_tokens": "439",
+    "debt_auction_bid_size": "35000",
+    "surplus_auction_amount_to_sell": "6000",
+    "surplus_buffer": "500000",
+    "disable_cooldown": "1814400"
+  },
+  "liquidation_engine": {
+    "on_auction_system_coin_limit": "10000000000000"
+  },
+  "tax_collector": {
+    "global_stability_fee": "0",
+    "max_secondary_receivers": "4",
+    "OCEAN-A annual stablity fee":"-0.5"
+  },
+  "coin_savings_account": {
+    "savings_rate": "0"
+  },
+  "global_settlement": {
+    "shutdown_cooldown": "345600"
+  },
+  "esm": {
+    "trigger_threshold": "70000"
+  },
+  "esm_threshold_setter": {
+    "deploy": "0"
+  },
+  "surplus_auction_house": {
+    "type": "burning",
+    "bid_change": "3",
+    "bid_duration": "3600",
+    "total_auction_length": "259200"
+  },
+  "debt_auction_house": {
+    "bid_change": "3",
+    "amount_sold_increase": "20",
+    "bid_duration": "1800",
+    "total_auction_length": "259200"
+  },
+  "governance": {
+    "type": "MULTISIG-SAFE",
+    "voting": {},
+    "multisig": {
+      "owners": [],
+      "quorum": "1"
+    }
+  },
+  "oracle_relayer": {
+    "redemption_rate_upper_bound": "1000000267417929490714933462",
+    "redemption_rate_lower_bound": "999987563275136890352859595",
+    "redemption_price": "3.14",
+    "redemption_rate": "0"
+  },
+  "single_ceiling_setter": {
+    "deploy": "1",
+    "base_caller_reward": "0",
+    "max_caller_reward": "10",
+    "reward_increase": "100",
+    "reward_increase_timeline": "3600",
+    "max_reward_increase_delay": "10800",
+    "update_delay": "259200",
+    "ceiling_percentage_change": "130",
+    "max_collateral_ceiling": "-1",
+    "min_collateral_ceiling": "10000000",
+    "last_update_time": "2840140800",
+    "manual_setters": [
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "stability_fee_treasury": {
+    "deploy": "1",
+    "pull_funds_min_threshold": "100000",
+    "surplus_transfer_delay": "1209600",
+    "expenses_multiplier": "3",
+    "treasury_capacity": "400000",
+    "minimum_funds_required": "300000"
+  },
+  "redemption_rate_setter": {
+    "deploy": "1",
+    "base_caller_reward": "0",
+    "max_caller_reward": "10",
+    "reward_increase": "100",
+    "reward_increase_timeline": "3600",
+    "max_reward_increase_delay": "10800",
+    "update_rate_delay": "14400"
+  },
+  "redemption_rate_calculator": {
+    "base_type": "PI",
+    "sub_type": "RawPerSecond",
+    "nb": "1000000000000000000",
+    "Kc": "0",
+    "Kp": "5000000",
+    "pscl": "1000000000000000000000000000",
+    "ps": "14400",
+    "ips": "14400",
+    "foub": "1000000000000000000000000000000000000000000000",
+    "folb": "-999999999999999999999999999",
+    "imported_state": [
+      0, 0, 0, 0, 0
+    ],
+    "data_readers": [
+      "0xfA5e4955a11902f849ECaddEf355Db69C2036de6",
+      "0x0CE1fF652BE78322e312e5073CD96B5E1cF5306E",
+      "0x3E0139cE3533a42A7D342841aEE69aB2BfEE1d51",
+      "0xBd3f90047B14e4f392d6877276d52D0aC59F4CF8"
+    ]
+  },
+  "protocol_token_holders": {
+    "amounts": [
+      "1000000"
+    ],
+    "holders": []
+  },
+  "coin": {
+    "type": "INDEX",
+    "name": "H20 index",
+    "symbol": "H20",
+    "oracle_deploy": {
+      "type": "UniswapConsecutiveSlots",
+      "fsm_addr": "",
+      "median_addr": "",
+      "integration": "",
+      "quorum": "1",
+      "fsm_delay": "3600",
+      "fsm_deploy": "0",
+      "strategy": "median",
+      "sub_strategy": "DSM",
+      "price": "3.14",
+      "dsm_deviation": "0.70",
+      "chainlink": {
+        "base_caller_reward": "0",
+        "max_caller_reward": "10",
+        "period_size": "14400",
+        "reward_increase": "100",
+        "reward_increase_timeline": "3600",
+        "max_reward_increase_delay": "10800"
+      },
+      "uniswap": {
+        "denomination_token_symbol": "ETH",
+        "denomination_token_address": "",
+        "default_amount_in": "1000000000000000000",
+        "window_size": "57600",
+        "max_window_size": "86400",
+        "converter_feed_scaling_factor": "1000000000000000000",
+        "granularity": "4",
+        "base_caller_reward": "0",
+        "max_caller_reward": "10",
+        "reward_increase": "100",
+        "reward_increase_timeline": "3600",
+        "max_reward_increase_delay": "10800"
+      },
+      "signers": [
+        "0xfA5e4955a11902f849ECaddEf355Db69C2036de6"
+      ]
+    },
+    "spot_oracle_deploy": {
+        "type": "UniswapConsecutiveSlots",
+        "fixed_discount_oracle_type": "spot",
+        "spot_addr": "",
+        "fsm_addr": "",
+        "integration": "",
+        "quorum": "1",
+        "fsm_delay": "3600",
+        "strategy": "median",
+        "price": "3.14",
+        "uniswap": {
+          "denomination_token_symbol": "ETH",
+          "denomination_token_address": "",
+          "default_amount_in": "1000000000000000000",
+          "window_size": "7200",
+          "max_window_size": "14400",
+          "converter_feed_scaling_factor": "1000000000000000000",
+          "granularity": "2",
+          "base_caller_reward": "0",
+          "max_caller_reward": "10",
+          "reward_increase": "100",
+          "reward_increase_timeline": "3600",
+          "max_reward_increase_delay": "10800"
+        },
+        "signers": [
+          ""
+        ]
+    }
+  },
   "tokens": {
-    "ETH": {
-      "gemDeploy": {
-        "src": "ds-weth/WETH9_",
-        "params": [],
-        "faucetSupply": "0",
-        "faucetAmount": "0"
+    "OCEAN": {
+      "import" :{
+        "gem": [""]
       },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
+      "test_gem_deploy": {
+        "src": "ds-token/DSToken",
+        "params": ["\"OCEAN\"", "\"OCEAN\""],
+        "faucetSupply": "990000000000000000000000",
+        "faucetAmount": "50000000000000000000"
       },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "150",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
+      "join_deploy": {
+        "src": "geb-deploy/CollateralJoin1",
+        "params": ["1000000000000000000000000"],
+        "extraParams": [],
+        "faucetSupply": "990000000000000000000000",
+        "faucetAmount": "50000000000000000000"
       },
-      "ilks": {
-        "A": {
-          "mat": "150",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "5",
-          "flipDeploy": {
-            "chop": "5",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
+      "oracle_deploy": {
+        "import": {
+          "integration": "",
+          "token_address": ""
         },
-        "B": {
-          "mat": "200",
-          "line": "0",
-          "autoLine": "50000000",
-          "autoLineGap": "5000000",
-          "autoLineTtl": "43200",
-          "dust": "100",
-          "duty": "4",
-          "clipDeploy": {
-            "chop": "5",
-            "hole": "1000",
-            "chip": "2",
-            "tip": "100",
-            "buf": "150",
-            "tail": "10800",
-            "cusp": "33.33",
-            "calc": {
-              "type": "LinearDecrease",
-              "tau":  "3600"
-            },
-            "cm_tolerance": "50"
-          }
-        },
-        "C": {
-          "mat": "120",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "10",
-          "clipDeploy": {
-            "chop": "5",
-            "hole": "1000",
-            "chip": "2",
-            "tip": "100",
-            "buf": "150",
-            "tail": "10800",
-            "cusp": "33.33",
-            "calc": {
-              "type": "StairstepExponentialDecrease",
-              "step": "10",
-              "cut":  "99"
-            },
-            "cm_tolerance": "50"
-          }
-        }
-      }
-    },
-    "REP": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/REP",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "20",
+        "type": "Chainlink",
+        "quorum": "1",
+        "fsm_delay": "3600",
+        "strategy": "median",
+        "sub_strategy": "OSM",
+        "price": "1700",
+        "dsm_deviation": "0.70",
+        "base_caller_reward": "0",
+        "max_caller_reward": "10",
+        "period_size": "3600",
+        "reward_increase": "100",
+        "reward_increase_timeline": "3600",
+        "max_reward_increase_delay": "10800",
         "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
+          ""
         ]
       },
-      "ilks": {
+      "collateral_types": {
         "A": {
-          "mat": "180",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "10",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "OMG": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/OMG",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin2",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "30",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "180",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "11.5",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "BAT": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/BAT",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "40",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "200",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "10.5",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "DGD": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/DGD",
-        "params": ["1000000000000000"],
-        "faucetSupply": "990000000000000",
-        "faucetAmount": "50000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin3",
-        "extraParams": ["9"]
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "50",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "190",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "9",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "GNT": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/GNT",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin4",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "50",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "180",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "9",
-          "flipDeploy": {
-            "chop": "5",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "USDC": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/USDC",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin5",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "1",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "125",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "20",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        },
-        "B": {
-          "mat": "125",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "20",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "TUSD": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/TUSD",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin6",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "1",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "125",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "20",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "WBTC": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/WBTC",
-        "params": ["100000000000000"],
-        "faucetSupply": "99000000000000",
-        "faucetAmount": "100000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin5",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "19000",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "150",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "20",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "ZRX": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/ZRX",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "25",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "190",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "9.5",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "KNC": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/KNC",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "1.21",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "150",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "20",
-          "flipDeploy": {
-            "chop": "8",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "MANA": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/MANA",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "0.04",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "12",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "USDT": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/USDT",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin7",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "1",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "150",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "6",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "PAXUSD": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/PAXUSD",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "1",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "120",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "2",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "COMP": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/COMP",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "140",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "1",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "LRC": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/LRC",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "0.22",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "3",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "LINK": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/LINK",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "9",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "3",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "BAL": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/BAL",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "40",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "5.0",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "YFI": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/YFI",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "13000",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "4",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "GUSD": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/GUSD",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin8",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "1",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "101",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "4",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "UNI": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/UNI",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "3",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "3",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "RENBTC": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/RENBTC",
-        "params": ["100000000000000"],
-        "faucetSupply": "99000000000000",
-        "faucetAmount": "100000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin5",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "19000",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "6",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "AAVE": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/AAVE",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "100",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "1000000",
-          "autoLine": "0",
-          "autoLineGap": "0",
-          "autoLineTtl": "0",
-          "dust": "100",
-          "duty": "6",
-          "flipDeploy": {
-            "chop": "13",
-            "dunk": "500",
-            "beg": "1",
-            "ttl": "3600",
-            "tau": "3600"
-          }
-        }
-      }
-    },
-    "MATIC": {
-      "gemDeploy": {
-        "src": "dss-gem-joins/MATIC",
-        "params": ["1000000000000000000000000"],
-        "faucetSupply": "990000000000000000000000",
-        "faucetAmount": "50000000000000000000"
-      },
-      "joinDeploy": {
-        "src": "GemJoin",
-        "extraParams": []
-      },
-      "pipDeploy": {
-        "osmDelay": "0",
-        "type": "value",
-        "price": "100",
-        "signers": [
-          "0x005B903dAdfD96229CBa5EB0e5Aa75C578e8F968",
-          "0x25310bC78B9347F97DC664b46E5D4602a6De5f2C",
-          "0x74B12Eeb596831796Beb1B36FC96DCCa815523B8",
-          "0xe709290634dE56a55d9826d35A9e677Fea5422EC",
-          "0x18753d13f14b80eb3d8ea96d4367957bb588d410",
-          "0x5874f6a09271cdb4e1a13ef3d402df6912863244",
-          "0x62ccadc1187593d0553398fabfa7ba41eb435ad2"
-        ]
-      },
-      "ilks": {
-        "A": {
-          "mat": "175",
-          "line": "0",
-          "autoLine": "10000000",
-          "autoLineGap": "3000000",
-          "autoLineTtl": "28800",
-          "dust": "100",
-          "duty": "3",
-          "clipDeploy": {
-            "chop": "13",
-            "hole": "5000",
-            "chip": "0.1",
-            "tip": "300",
-            "buf": "130",
-            "tail": "8400",
-            "cusp": "40",
-            "calc": {
-              "type": "StairstepExponentialDecrease",
-              "step": "90",
-              "cut":  "99"
-            },
-            "cm_tolerance": "95"
+          "auction_deploy": {
+            "auction_type": "FIXED_DISCOUNT",
+            "minimum_bid": "25",
+            "fixed_discount": "0.94",
+
+            "lower_collateral_median_deviation": "0.80",
+            "upper_collateral_median_deviation": "0.80",
+            "lower_system_coin_median_deviation": "1",
+            "upper_system_coin_median_deviation": "1",
+            "min_system_coin_median_deviation": "0.96"
+          },
+          "safety_c_ratio": "145",
+          "liquidation_c_ratio": "145",
+          "debt_ceiling": "10000000",
+          "debt_floor": "800",
+          "stability_fee": "2",
+          "liquidation_penalty": "12",
+          "liquidation_quantity": "90000",
+          "bid_change": "3",
+          "bid_duration": "3600",
+          
+          "total_auction_length": "172800",
+          "treasury_fee_portion": "50",
+          "secondary_tax_receivers": {
+            "percentages": [],
+            "accounts": []
           }
         }
       }

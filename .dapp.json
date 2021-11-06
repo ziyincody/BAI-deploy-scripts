@@ -826,6 +826,23 @@
         "url": "https://github.com/reflexer-labs/geb"
       }
     },
+    "h20-deploy_68357e0": {
+      "deps": {
+        "ds-guard": "ds-guard_3f039a3",
+        "ds-pause": "ds-pause_28076a5",
+        "ds-value": "ds-value_5aaf162",
+        "ds-weth": "ds-weth_74210ef",
+        "esm": "esm_e8fc7be",
+        "geb": "geb_7db6846"
+      },
+      "name": "h20-deploy",
+      "repo": {
+        "name": "h20-deploy-81ce6ef",
+        "ref": "adding-fixed-collateral-auction-house-discount",
+        "rev": "68357e030206efec2bb170ae1c33e70e7bcce3fc",
+        "url": "http://github.com/stablecoin-research/h20-deploy"
+      }
+    },
     "merkle-distributor_f811a78": {
       "deps": {
         "ds-test": "ds-test_c0b770c",
@@ -877,6 +894,7 @@
       "geb-safe-manager": "geb-safe-manager_df6489f",
       "geb-safe-saviours": "geb-safe-saviours_3c8309c",
       "geb-uniswap-median": "geb-uniswap-median_f19c796",
+      "h20-deploy": "h20-deploy_68357e0",
       "multicall": "multicall_0b779cc"
     },
     "name": "H20-deploy-scripts"

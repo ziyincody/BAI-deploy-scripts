@@ -17,7 +17,7 @@
 
 [[ "$_" != "$0" ]] || { echo >&2 "Use this script by sourcing it \`. $0\` instead"; exit 1; }
 
-TESTNET_PORT=${TESTNET_PORT:-8545}
+TESTNET_PORT=${TESTNET_PORT:-8546}
 TESTNET_HOST=${TESTNET_HOST:-localhost}
 TESTNET_URL="http://$TESTNET_HOST:$TESTNET_PORT"
 
@@ -42,7 +42,7 @@ fi
 export ETH_PASSWORD="${ETH_PASSWORD:-/dev/null}"
 export ETH_KEYSTORE="${ETH_KEYSTORE:-$KEYSTORE_PATH}"
 export ETH_RPC_URL="${ETH_RPC_URL:-$TESTNET_URL}"
-export ETH_GAS=12500000
+export ETH_GAS=9000000
 
 export ETH_FROM="${ETH_FROM:-$(seth ls | head -n1 | awk '{print $1}')}"
 

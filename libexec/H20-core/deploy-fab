@@ -19,24 +19,25 @@
 . "$LIB_DIR/common.sh"
 
 export SETH_ASYNC=yes
-SAFEENGINE_FABtx=$(dappCreate geb-deploy SAFEEngineFactory)                               
-TAXCOLLECTOR_FABtx=$(dappCreate geb-deploy TaxCollectorFactory)                             
-ACCOUNTINGENGINE_FABtx=$(dappCreate geb-deploy AccountingEngineFactory)                         
-LIQUIDATIONENGINE_FABtx=$(dappCreate geb-deploy LiquidationEngineFactory)                        
-COIN_FABtx=$(dappCreate geb-deploy CoinFactory)                                     
-COINJOIN_FABtx=$(dappCreate geb-deploy CoinJoinFactory)                                 
-STABILITYFEETREASURY_FABtx=$(dappCreate geb-deploy StabilityFeeTreasuryFactory)                     
-RECYCLINGSURPLUSAUCTIONHOUSE_FABtx=$(dappCreate geb-deploy RecyclingSurplusAuctionHouseFactory)             
-BURNINGSURPLUSAUCTIONHOUSE_FABtx=$(dappCreate geb-deploy BurningSurplusAuctionHouseFactory)               
-DEBTAUCTIONHOUSE_FABtx=$(dappCreate geb-deploy DebtAuctionHouseFactory)                         
-ENGLISHCOLLATERALAUCTIONHOUSE_FABtx=$(dappCreate geb-deploy EnglishCollateralAuctionHouseFactory)            
-INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FABtx=$(dappCreate geb-deploy IncreasingDiscountCollateralAuctionHouseFactory) 
-ORACLERELAYER_FABtx=$(dappCreate geb-deploy OracleRelayerFactory)                            
-GLOBALSETTLEMENT_FABtx=$(dappCreate geb-deploy GlobalSettlementFactory)                         
-ESM_FABtx=$(dappCreate geb-deploy ESMFactory)                                      
-PAUSE_FABtx=$(dappCreate geb-deploy PauseFactory)                                    
-PROTESTPAUSE_FABtx=$(dappCreate geb-deploy ProtestPauseFactory)                             
-COINSAVINGSACCOUNT_FABtx=$(dappCreate geb-deploy CoinSavingsAccountFactory)    
+SAFEENGINE_FABtx=$(dappCreate h20-deploy SAFEEngineFactory)                               
+TAXCOLLECTOR_FABtx=$(dappCreate h20-deploy TaxCollectorFactory)                             
+ACCOUNTINGENGINE_FABtx=$(dappCreate h20-deploy AccountingEngineFactory)                         
+LIQUIDATIONENGINE_FABtx=$(dappCreate h20-deploy LiquidationEngineFactory)                        
+COIN_FABtx=$(dappCreate h20-deploy CoinFactory)                                     
+COINJOIN_FABtx=$(dappCreate h20-deploy CoinJoinFactory)                                 
+STABILITYFEETREASURY_FABtx=$(dappCreate h20-deploy StabilityFeeTreasuryFactory)                     
+RECYCLINGSURPLUSAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy RecyclingSurplusAuctionHouseFactory)             
+BURNINGSURPLUSAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy BurningSurplusAuctionHouseFactory)               
+DEBTAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy DebtAuctionHouseFactory)                         
+ENGLISHCOLLATERALAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy EnglishCollateralAuctionHouseFactory)            
+INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy IncreasingDiscountCollateralAuctionHouseFactory) 
+FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FABtx=$(dappCreate h20-deploy FixedDiscountCollateralAuctionHouseFactory) 
+ORACLERELAYER_FABtx=$(dappCreate h20-deploy OracleRelayerFactory)                            
+GLOBALSETTLEMENT_FABtx=$(dappCreate h20-deploy GlobalSettlementFactory)                         
+ESM_FABtx=$(dappCreate h20-deploy ESMFactory)                                      
+PAUSE_FABtx=$(dappCreate h20-deploy PauseFactory)                                    
+PROTESTPAUSE_FABtx=$(dappCreate h20-deploy ProtestPauseFactory)                             
+COINSAVINGSACCOUNT_FABtx=$(dappCreate h20-deploy CoinSavingsAccountFactory)    
 
 export SETH_ASYNC=no
 
@@ -52,6 +53,7 @@ test "$(seth receipt "$BURNINGSURPLUSAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 
 test "$(seth receipt "$DEBTAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
 test "$(seth receipt "$ENGLISHCOLLATERALAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
 test "$(seth receipt "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FABtx" status)" -eq 0 && exit 1
 test "$(seth receipt "$ORACLERELAYER_FABtx" status)" -eq 0 && exit 1
 test "$(seth receipt "$GLOBALSETTLEMENT_FABtx" status)" -eq 0 && exit 1
 test "$(seth receipt "$ESM_FABtx" status)" -eq 0 && exit 1
@@ -72,6 +74,7 @@ BURNINGSURPLUSAUCTIONHOUSE_FAB=$(seth receipt "$BURNINGSURPLUSAUCTIONHOUSE_FABtx
 DEBTAUCTIONHOUSE_FAB=$(seth receipt "$DEBTAUCTIONHOUSE_FABtx" contractAddress)
 ENGLISHCOLLATERALAUCTIONHOUSE_FAB=$(seth receipt "$ENGLISHCOLLATERALAUCTIONHOUSE_FABtx" contractAddress)
 INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB=$(seth receipt "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FABtx" contractAddress)
+FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB=$(seth receipt "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FABtx" contractAddress)
 ORACLERELAYER_FAB=$(seth receipt "$ORACLERELAYER_FABtx" contractAddress)
 GLOBALSETTLEMENT_FAB=$(seth receipt "$GLOBALSETTLEMENT_FABtx" contractAddress)
 ESM_FAB=$(seth receipt "$ESM_FABtx" contractAddress)
@@ -112,6 +115,7 @@ export BURNINGSURPLUSAUCTIONHOUSE_FAB=$BURNINGSURPLUSAUCTIONHOUSE_FAB
 export DEBTAUCTIONHOUSE_FAB=$DEBTAUCTIONHOUSE_FAB
 export ENGLISHCOLLATERALAUCTIONHOUSE_FAB=$ENGLISHCOLLATERALAUCTIONHOUSE_FAB
 export INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB=$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB
+export FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB=$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB
 export ORACLERELAYER_FAB=$ORACLERELAYER_FAB
 export GLOBALSETTLEMENT_FAB=$GLOBALSETTLEMENT_FAB
 export ESM_FAB=$ESM_FAB

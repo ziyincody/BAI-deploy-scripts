@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+# Get config variables
+CONFIG_FILE="$OUT_DIR/config.json"
+# Get addresses
+loadAddresses
+
+log "SET COLLATERAL AUCTION:"
+
+tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+for token in $tokens; do
+    collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
+    for collateral_type in $collateral_types; do
+            stability_fee="$(jq ".tokens.${token}.collateral_types.${collateral_type}.stability_fee" "$CONFIG_FILE")"
+            calldata="$(seth calldata 'modifyParameters(bytes32,bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "$token")")" "$(seth --to-bytes32 "$(seth --from-ascii "stabilityFee")")" "$stability_fee")"
+            
+            sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$(eval echo "\$GEB_TAX_COLLECTOR")" "$calldata"
+    done
+done
+
+# sethSend "$FLIPPER_MOM" 'setAuthority(address)' "$MCD_ADM"
+# sethSend "$FLIPPER_MOM" 'setOwner(address)' "$MCD_PAUSE_PROXY"
