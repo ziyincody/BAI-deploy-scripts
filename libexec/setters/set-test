@@ -15,28 +15,18 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-
-
-##. NOT NEEDED for now ( script to deploy and use flash mint module here: https://docs.makerdao.com/smart-contract-modules/flash-mint-module )
-
-
-
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
 
 # Get config variables
 CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
-loadAddresses
+#loadAddresses
 
-log "SET FLASH TOLL:"
+log "TEST"
+calldata="$(seth calldata 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "staleThreshold")")" "360000000")"
+sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "0x05Feb28BAE29CbD61033664CF6242d9E933959F4" "$calldata"
 
-# Set beg
-toll=$(jq -r ".flash_toll | values" "$CONFIG_FILE")
-if [[ "$toll" != "" ]]; then
-    toll=$(echo "$toll*10^16" | bc -l)
-    toll=${toll%.*}
-    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_FLASH" "$(seth --to-bytes32 "$(seth --from-ascii "toll")")" "$toll")"
-    sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
-fi
+
+# sethSend "$FLIPPER_MOM" 'setAuthority(address)' "$MCD_ADM"
+# sethSend "$FLIPPER_MOM" 'setOwner(address)' "$MCD_PAUSE_PROXY"

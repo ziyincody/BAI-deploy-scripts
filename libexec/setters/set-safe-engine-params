@@ -23,20 +23,13 @@ CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
 loadAddresses
 
-log "SET ILKS CHIP:"
+log "SET SAFE ENGINE PARAMS:"
 
-tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
-for token in $tokens; do
-    ilks=$(jq -r ".tokens.${token}.ilks | keys_unsorted[]" "$CONFIG_FILE")
-    for ilk in $ilks; do
-        flipDeploy="$(jq ".tokens.${token}.ilks.${ilk} | .flipDeploy!=null" "$CONFIG_FILE")"
-        if [[ "$flipDeploy" == false ]]; then
-            chip="$(jq -r ".tokens.${token}.ilks.${ilk} | .clipDeploy.chip" "$CONFIG_FILE")"
-            chip=$(echo "${chip}*10^16" | bc -l)
-            chip=${chip%.*}
+global_debt_ceiling="$(jq -r ".safe_engine.global_debt_ceiling" "$CONFIG_FILE")"
+global_debt_ceiling=$(seth --to-int256 "$global_debt_ceiling")
+sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "globalDebtCeiling")")" "$global_debt_ceiling"
 
-            calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$(eval echo "\$MCD_CLIP_${token}_${ilk}")" "$(seth --to-bytes32 "$(seth --from-ascii "chip")")" "$chip")"
-            sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
-        fi
-    done
-done
+safe_debt_ceiling="$(jq -r ".safe_engine.safe_debt_ceiling" "$CONFIG_FILE")"
+safe_debt_ceiling=$(echo "$safe_debt_ceiling"*10^18 | bc)
+safe_debt_ceiling="${safe_debt_ceiling%.*}"
+sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "safeDebtCeiling")")" "$safe_debt_ceiling"

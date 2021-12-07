@@ -23,9 +23,17 @@ loadAddresses
 
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 uniswap_router=$(jq -r ".import.uniswap_router | values" "$CONFIG_FILE")
+uniswap_factory=$(jq -r ".import.uniswap_factory | values" "$CONFIG_FILE")
+chainlink_eth_usd=$(jq -r ".import.chainlink_eth_usd | values" "$CONFIG_FILE")
+weth=$(jq -r ".import.weth | values" "$CONFIG_FILE")
+uniswap_medianizer_deployer=$(dappCreate h2o-governance-actions DeployUniswapMedianizer)
+osm_and_wrapper_deployer=$(dappCreate h2o-governance-actions DeployOSMandWrapper)
+
+# Set the proxy address as root of the roles (in order to be able to do all the variables set up)
+# sethSend "$MCD_ADM" 'setRootUser(address,bool)' "$PROXY_DEPLOYER" true
 
 for token in $tokens; do
-    tokenAddress=$(jq -r ".tokens.${token} | .import.gem | values" "$CONFIG_FILE")
+    tokenAddress=$(jq -r ".tokens.${token} | .import.gem" "$CONFIG_FILE")
     
     # We are not creating dummy tokens
     if [[ "$tokenAddress" == "" ]]; then
@@ -35,7 +43,7 @@ for token in $tokens; do
 
         sethSend "$tokenAddress" "mint(address,uint256)" "$ETH_FROM" "50000000000000000000" 
         sethSend "$tokenAddress" "approve(address,uint256)" "$uniswap_router" "10000000000000000000" 
-        sethSend "$uniswap_router" "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)" "$tokenAddress" "10000000000000000000" "10000000000000000000" "10000000000000000" "--value 10000000000000000" "$ETH_FROM" "1635925448994"
+        sethSend "$uniswap_router" "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)" "$tokenAddress" "10000000000000000000" "10000000000000000000" "10000000000000000" "$ETH_FROM" "1635925448994" "--value" "10000000000000000"
     fi
     logAddr "${token}" "${tokenAddress}"
 
@@ -48,15 +56,42 @@ for token in $tokens; do
         collateral_type_envVar="${token}_${collateral_type}"
         auction_type=$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_type" "$CONFIG_FILE")
 
-        joinAddr=$(dappCreate "${joinSrc[@]}" "$GEB_SAFE_ENGINE" "$collateral_type_name" "${joinExtraParams[@]}")
+        joinAddr=$(dappCreate "${joinSrc[@]}" "$GEB_SAFE_ENGINE" "$collateral_type_name" "$tokenAddress" "${joinExtraParams[@]}")
         logAddr "GEB_JOIN_${collateral_type_envVar}" "$(eval "echo ${joinAddr}")"
 
+        #(address treasury, address chainlinkAggregator, address uniswapFactory, address targetToken, address wethToken)
+        #sethSend $uniswap_medianizer_deployer "execute(address,address,address,address,address)" "$GEB_STABILITY_FEE_TREASURY" "$chainlink_eth_usd" "$uniswap_factory" "$tokenAddress" "$weth"
+      
+        window_size="15"
+        max_window_size="86400"
+        calldata="$(seth calldata "execute(address,address,address,address,address,uint256,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$chainlink_eth_usd" "$uniswap_factory" "$tokenAddress" "$weth" "$window_size" "$max_window_size")"
+        
+        export SETH_ASYNC=yes
+        medianizer_tx="$(sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$uniswap_medianizer_deployer" "$calldata")"
+        export SETH_ASYNC=no
+
+        tx_topics="$(seth receipt "$medianizer_tx" logs | jq -c '.| .[] | select(.topics[0] == "0x9d1bccfbc412730c36f0d572d0b9a3b9514ca3c3496a3df9e2065b342d2c9aaa") | .topics')"
+        collateral_usd_medianizer="$(seth --to-hex "$(seth --to-dec "$(echo $tx_topics | jq -r ".[1]")")")"
+        echo "$tx_topics"
+        calldata="$(seth calldata "execute(address,address,address,bytes32)" "$GEB_STABILITY_FEE_TREASURY" "$collateral_usd_medianizer" "$FSM_GOV_INTERFACE" "$collateral_type_name")"
+        
+        export SETH_ASYNC=yes
+        osm_tx="$(sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$osm_and_wrapper_deployer" "$calldata")"
+        export SETH_ASYNC=no
+
+        echo "$osm_tx"
+        osm_tx_topics="$(seth receipt "$osm_tx" logs | jq -c '.| .[] | select(.topics[0] == "0xde3e9f5d676da024a79885b4972e1916f7f719c45b89ff3654a111ded9adf505") | .topics')"
+        osm="$(seth --to-hex "$(seth --to-dec "$(echo $osm_tx_topics | jq -r ".[1]")")")"
+        fsm_wrapper="$(seth --to-hex "$(seth --to-dec "$(echo $osm_tx_topics | jq -r ".[2]")")")"
+        echo "$osm_tx_topics"
+       # seth send 0x956d3A0B3161f79E6809cc1313E8F32B0de73B70 "execute(address,address,address,address,address)" "0xEcc2e86691c0513bb7391166c9f782ae2A778EDC" "0x9326BFA02ADD2366b30bacB125260Af641031331" "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f" "0x636DFd93fE87A9D1f15497eB54A2E4F9dCc0Aae5" "0xd0a1e359811322d97991e03f863a0c30c2cf029c"
         sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' \
             "$(seth --to-bytes32 "$(seth --from-ascii "$auction_type")")"   \
-            "$(seth --to-bytes32 "$(seth --from-ascii "$token-$collateral_type")")"    \
-            "$joinAddr" "$tokenAddress"                               \
+            "$collateral_type_name"    \
+            "$joinAddr" "$fsm_wrapper"                               \
             "0x0000000000000000000000000000000000000000"
-        sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_PAUSE"
+        sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$collateral_type_name" "$GEB_PAUSE"
+
         
         # Just in case there is a reorg or the node is not up to date we keep checking until getting a result
         keepChecking=true
@@ -64,7 +99,7 @@ for token in $tokens; do
         while [[ "$keepChecking" == true ]]
         do
             data=()
-            while IFS=$'\n' read -r line; do data+=("$line"); done < <(seth call "$GEB_DEPLOY" "collateral_types(bytes32)(address,address,address)" "$collateral_type_name")
+            while IFS=$'\n' read -r line; do data+=("$line"); done < <(seth call "$GEB_DEPLOY" "collateralTypes(bytes32)(address,address,address)" "$collateral_type_name")
 
             if [[ ${data[0]} != "0x0000000000000000000000000000000000000000" || ${data[1]} != "0x0000000000000000000000000000000000000000" ]]; then
                 keepChecking=false
@@ -74,13 +109,13 @@ for token in $tokens; do
             fi
         done
         exports+="
-        export ${token}=\"${tokenAddress}\"
-        export GEB_JOIN_${collateral_type_envVar}=\"${joinAddr}\"
+export ${token}=\"${tokenAddress}\"
+export GEB_JOIN_${collateral_type_envVar}=\"${joinAddr}\"
         "
 
-        logAddr "GEB_COLLATERAL_AUCTION_HOUSE_${collateral_type_envVar}" "${data[0]}"
+        logAddr "GEB_COLLATERAL_AUCTION_HOUSE_${collateral_type_envVar}" "${data[1]}"
         exports+="
-        export GEB_COLLATERAL_AUCTION_HOUSE_${collateral_type_envVar}=\"${data[0]}\"
+export GEB_COLLATERAL_AUCTION_HOUSE_${collateral_type_envVar}=\"${data[1]}\"
         "
     done
 done

@@ -29,11 +29,12 @@ eval "export UNISWAP_FACTORY=${contract}"
 eval "export UNISWAP_FACTORY=0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 eval "export UNISWAP_ROUTER=0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
-# Deploy  the oracle module and medianizer contract
 
+# Deploy  the oracle module and medianizer contract
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 # Deploy Multicall
 MULTICALL=$(dappCreate multicall Multicall)
+copy multicall
 
 for token in $tokens; do
     pipAddr=$(jq -r ".tokens.${token} | .import.pip | values" "$CONFIG_FILE")
@@ -90,7 +91,7 @@ if [[ "$PROXY_DEPLOYER" == "0x0000000000000000000000000000000000000000" ]]; then
 fi
 
 
-WETH="$(dappCreate h20-deploy WETH9_)" #"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" # kovan - "0xd0a1e359811322d97991e03f863a0c30c2cf029c"
+WETH="0xd0a1e359811322d97991e03f863a0c30c2cf029c" # "$(dappCreate h20-deploy WETH9_)" #"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" # kovan -
 sethSend "$WETH" --value 500000000000000000
 
 # create multisig
@@ -183,7 +184,8 @@ sethSend "$GEB_DEPLOY" "setSecondFactoryBatch(address,address,address,address,ad
 sethSend "$GEB_DEPLOY" "setThirdFactoryBatch(address,address,address)" "$PAUSE_FAB" "$PROTESTPAUSE_FAB" "$STABILITYFEETREASURY_FAB"
 
 sethSend "$GEB_DEPLOY" 'deploySAFEEngine()'
-sethSend "$GEB_DEPLOY" 'deployCoin(string, string, uint256)' '"Rai Reflex Index"' '"RAI"' "99"
+# Remove kovan chain id
+sethSend "$GEB_DEPLOY" 'deployCoin(string, string, uint256)' '"H2O Index"' '"H2O"' "42" 
 sethSend "$GEB_DEPLOY" 'deployTaxation()'
 sethSend "$GEB_DEPLOY" 'deployAuctions(address, address, bytes32)' "$GEB_PROT" "$ETH_FROM" "$(seth --to-bytes32 "$(seth --from-ascii "recycling")")"
 sethSend "$GEB_DEPLOY" 'deployAccountingEngine()'
@@ -195,9 +197,6 @@ sethSend "$GEB_DEPLOY" 'deployPause(uint256, address)' "0" "$GEB_PAUSE_AUTHORITY
 
 eval "export VAL_DEPLOY=${contract}"
 
-
-
-#sethSend "$(eval echo "\$VAL_DEPLOY")" 'deploySAFEEngine()' ""
 
 GEB_SAFE_ENGINE="$(seth call "$GEB_DEPLOY" "safeEngine()(address)")"
 GEB_TAX_COLLECTOR="$(seth call "$GEB_DEPLOY" "taxCollector()(address)")"
@@ -216,45 +215,61 @@ GEB_ESM="$(seth call "$GEB_DEPLOY" "esm()(address)")"
 GEB_PAUSE="$(seth call "$GEB_DEPLOY" "pause()(address)")"
 GEB_PROTEST_PAUSE="$(seth call "$GEB_DEPLOY" "protestPause()(address)")"
 
+FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface)"
+
 
 sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_MULTISIG" true
 sethSend "$GEB_DEPLOY" 'giveControl(address)' "$GEB_PAUSE"
 
+sethSend "$GEB_DEPLOY" 'giveControl(address)' "$ETH_FROM"
+
+
+cat > "$OUT_DIR/load-core-addr-temp" <<EOF
+#!/bin/bash
+export GEB_SAFE_ENGINE=$GEB_SAFE_ENGINE
+export GEB_TAX_COLLECTOR=$GEB_TAX_COLLECTOR
+export GEB_ACCOUNTING_ENGINE=$GEB_ACCOUNTING_ENGINE
+export GEB_LIQUIDATION_ENGINE=$GEB_LIQUIDATION_ENGINE
+export GEB_STABILITY_FEE_TREASURY=$GEB_STABILITY_FEE_TREASURY
+export GEB_COIN=$GEB_COIN
+export GEB_COIN_JOIN=$GEB_COIN_JOIN
+export GEB_RECYCLING_SURPLUS_AUCTION_HOUSE=$GEB_RECYCLING_SURPLUS_AUCTION_HOUSE
+export GEB_BURNING_SURPLUS_AUCTION_HOUSE=$GEB_BURNING_SURPLUS_AUCTION_HOUSE
+export GEB_DEBT_AUCTION_HOUSE=$GEB_DEBT_AUCTION_HOUSE
+export GEB_ORACLE_RELAYER=$GEB_ORACLE_RELAYER
+export GEB_COIN_SAVINGS_ACCOUNT=$GEB_COIN_SAVINGS_ACCOUNT
+export GEB_GLOBAL_SETTLEMENT=$GEB_GLOBAL_SETTLEMENT
+export GEB_ESM=$GEB_ESM
+export GEB_PAUSE=$GEB_PAUSE
+export GEB_PROTEST_PAUSE=$GEB_PROTEST_PAUSE
+export GEB_GOV_ACTIONS=$GEB_GOV_ACTIONS
+export PROXY_DEPLOYER=$PROXY_DEPLOYER
+export FSM_GOV_INTERFACE=$FSM_GOV_INTERFACE
+EOF
+
+
 
 # ================== Peripherials ===========================
 
-# ## Kp, periodSize, noiseBarrier, feedbackOutputUpperBound, feedbackOutputLowerBound(-(10^27-1))
-# GEB_RRFM_CALCULATOR="$(dappCreate geb-rrfm-calculators PRawPerSecondCalculator "1000000000000000000" "3600" "1000000000000000000" "1000000000000000000000000000000000000000000000" "0xfffffffffffffffffffffffffffffffffffffffffcc4d1c3602f7fc318000001")"
-# ## address oracleRelayer_, address treasury_, uint256 baseUpdateCallerReward_, uint256 maxUpdateCallerReward_, uint256 perSecondCallerRewardIncrease_, uint256 relayDelay_
-# GEB_RRFM_SETTER_RELAYER="$(dappCreate geb-rrfm-rate-setter SetterRelayer "$GEB_ORACLE_RELAYER" "$GEB_STABILITY_FEE_TREASURY" "5000000000000000000" "10000000000000000000" "1000192559420674483977255848" "3600")"
-# ## address oracleRelayer_, address setterRelayer_, address orcl_, address pidCalculator_, uint256 updateRateDelay_
-# GEB_RRFM_SETTER="$(dappCreate geb-rrfm-rate-setter PIRateSetter "$GEB_ORACLE_RELAYER" "$GEB_RRFM_SETTER_RELAYER" "<UniswapConsecutiveSlotsPriceFeedMedianizer>" "$GEB_RRFM_CALCULATOR" "3600")"
-
+sethSend "$GEB_DEPLOY" 'giveControl(address)' "$PROXY_DEPLOYER"
 
 GEB_SAFE_MANAGER="$(dappCreate geb-safe-manager GebSafeManager "$GEB_SAFE_ENGINE")"
 GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
 
-FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface)"
+sethSend "$FSM_GOV_INTERFACE" 'setOwner(address)' "$PROXY_DEPLOYER"
+
+"$LIBEXEC_DIR"/H20-core/deploy-coin-oracle
+"$LIBEXEC_DIR"/H20-core/deploy-rate-setter
+
+"$LIBEXEC_DIR"/H20-core/deploy-ceiling-setter
+
+"$LIBEXEC_DIR"/H20-core/deploy-auction-throttler
 
 # saveCooldown
 SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
 
-## address converterFeed_, address uniswapFactory_, uint256 defaultAmountIn_, uint256 windowSize_, uint256 converterFeedScalingFactor_, uint256 maxWindowSize_, uint8   granularity_
-# MEDIANIZER_RAI="$(dappCreate geb-uniswap-median UniswapConsecutiveSlotsPriceFeedMedianizer "3600")"
+GEB_REDEMPTION_PRICE_SNAP=$(dappCreate geb-redemption-price-snap RedemptionPriceSnap "$GEB_ORACLE_RELAYER")
 
-
-
-
-
-# GEB_JOIN_ETH_A="$(dappCreate geb-deploy CollateralJoin1 "$GEB_SAFE_ENGINE" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" $WETH)"
-
-
-# sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ENGLISH")")" "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_JOIN_ETH_A" "$WETH" "0x0000000000000000000000000000000000000000"
-# sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$(seth --to-bytes32 "$(seth --from-ascii "ETH-A")")" "$GEB_PAUSE"
-
-# echo "$GEB_SAFE_ENGINE"
-# echo "$WETH"
-# echo GEB_SAFE_ENGINE
 # Generate addresses.json file
 # shellcheck disable=SC2153
 cat > "$OUT_DIR"/addresses.json <<EOF
@@ -298,53 +313,26 @@ cat > "$OUT_DIR"/addresses.json <<EOF
     "GEB_COIN_SAVINGS_ACCOUNT": "$(seth --to-checksum-address "$GEB_COIN_SAVINGS_ACCOUNT")",
     "GEB_BURNING_SURPLUS_AUCTION_HOUSE": "$(seth --to-checksum-address "$GEB_BURNING_SURPLUS_AUCTION_HOUSE")",
     "GEB_RECYCLING_SURPLUS_AUCTION_HOUSE": "$(seth --to-checksum-address "$GEB_RECYCLING_SURPLUS_AUCTION_HOUSE")",
+    "GEB_REDEMPTION_PRICE_SNAP": "$(seth --to-checksum-address "$GEB_REDEMPTION_PRICE_SNAP")"
 }
 EOF
 
-
-    
-    # "GEB_MULTISIG_PROXY": "$(seth --to-checksum-address "$GEB_MULTISIG_PROXY")",
-    # "GEB_JOIN_ETH_A": "$(seth --to-checksum-address "$GEB_JOIN_ETH_A")",
-    # "GEB_RRFM_CALCULATOR": "$(seth --to-checksum-address "$GEB_RRFM_CALCULATOR")",
-    # "GEB_RRFM_SETTER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER")",
-    # "GEB_RRFM_SETTER_RELAYER": "$(seth --to-checksum-address "$GEB_RRFM_SETTER_RELAYER")",
-
-
-
-
 # ================== Core ===========================
+
+"$LIBEXEC_DIR"/setters/set-oracle-relayer-params
+
+"$LIBEXEC_DIR"/setters/set-safe-engine-params
 
 "$LIBEXEC_DIR"/H20-core/deploy-collaterals
 
-"$LIBEXEC_DIR"/H20-setters/set-collateral-auction-params
+"$LIBEXEC_DIR"/setters/set-collateral-auction-params
 
-"$LIBEXEC_DIR"/H20-setters/set-tax-collector-params
+"$LIBEXEC_DIR"/setters/set-collateral-tax-collector-params
 
-        # // Set SAFEEngine Params
-        # this.modifyParameters(address(safeEngine), bytes32("globalDebtCeiling"), uint(10000 * 10 ** 45));
-        # this.modifyParameters(address(safeEngine), bytes32("ETH"), bytes32("debtCeiling"), uint(10000 * 10 ** 45));
+"$LIBEXEC_DIR"/setters/set-collateral-safe-engine-params
 
-        # orclETH.updateResult(300 * 10 ** 18); // Price 300 COIN = 1 ETH (precision 18)
-        # orclCOIN.updateResult(1 * 10 ** 18);  // Price 1 COIN = 1 USD
+"$LIBEXEC_DIR"/setters/set-collateral-liquidation-engine-params
 
-        # priceSourceETH.updateResult(300 * 10 ** 18); // Price 300 COIN = 1 ETH (precision 18)
-        # priceSourceCOIN.updateResult(1 * 10 ** 18);  // Price 1 COIN = 1 USD
+"$LIBEXEC_DIR"/setters/set-collateral-oracle-relayer-params
 
-        # (ethEnglishCollateralAuctionHouse, ethIncreasingDiscountCollateralAuctionHouse,) = gebDeploy.collateralTypes("ETH");
-        # this.modifyParameters(address(oracleRelayer), "ETH", "safetyCRatio", uint(1500000000 ether));
-        # this.modifyParameters(address(oracleRelayer), "ETH", "liquidationCRatio", uint(1500000000 ether));
-
-        # oracleRelayer.updateCollateralPrice("ETH");
-        # (,,uint safetyPrice,,,uint liquidationPrice) = safeEngine.collateralTypes("ETH");
-
-        # DSGuard(address(prot.authority())).permit(address(debtAuctionHouse), address(prot), bytes4(keccak256("mint(address,uint256)")));
-        # DSGuard(address(prot.authority())).permit(address(recyclingSurplusAuctionHouse), address(prot), bytes4(keccak256("burn(address,uint256)")));
-
-
-# authority.setRootUser(pauseProxy, true);
-# gebDeploy.giveControl(pauseProxy);
-
-# weth = new WETH9_();
-# ethJoin = new CollateralJoin1(address(safeEngine), "ETH", address(weth));
-# gebDeploy.deployCollateral(auctionType, "ETH", address(ethJoin), address(orclETH), address(0));
-# gebDeploy.addAuthToCollateralAuctionHouse("ETH", pauseProxy);
+sethSend "$GEB_DEPLOY" 'takeControl(address)' "$ETH_FROM"

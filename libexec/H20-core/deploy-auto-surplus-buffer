@@ -18,18 +18,17 @@
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
 
-# Get config variables
-CONFIG_FILE="$OUT_DIR/config.json"
-# Get addresses
-loadAddresses
+. "$OUT_DIR/load-core-addr-temp"
 
-{ test "$1" != "flap" && test "$1" != "flop"; } && exit 1
+GEB_AUCTIONED_SURPLUS_BUFFER="$(dappCreate geb-auto-surplus-buffer AutoSurplusBufferSetter \
+    "$GEB_STABILITY_FEE_TREASURY" \
+    "$GEB_ORACLE_RELAYER" \
+    "$GEB_ACCOUNTING_ENGINE" \
+    # ??
+    )"
 
-log "SET $(toUpper "$1") TTL:"
 
-# Set ttl
-ttl=$(jq -r ".$1_ttl | values" "$CONFIG_FILE")
-if [[ "$ttl" != "" ]]; then
-    calldata="$(seth calldata 'file(address,address,address,bytes32,uint256)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$(eval echo "\$MCD_$(toUpper "$1")")" "$(seth --to-bytes32 "$(seth --from-ascii "ttl")")" "$ttl")"
-    sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
-fi
+cat > "$OUT_DIR/load-auto-surplus-addr-temp" <<EOF
+#!/bin/bash
+export GEB_AUCTIONED_SURPLUS_BUFFER=$GEB_AUCTIONED_SURPLUS_BUFFER
+EOF

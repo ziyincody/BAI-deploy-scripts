@@ -113,7 +113,7 @@ dappCreate() {
     REAL_PATH="$(find "$DAPP_LIB/$lib/out" \
         -name "dapp.sol.json" \
         -type l -ls | sed 's/.*-> //g' | grep dapp.sol.json | sed 's/\/out\/dapp\.sol\.json//g')"
-    CONTRACT_PATH="$(<"$DAPP_LIB/$lib/out/dapp.sol.json" jq -c '.contracts|keys[]' -r | grep ":$class$")"
+    CONTRACT_PATH="$(<"$DAPP_LIB/$lib/out/dapp.sol.json" jq -c '.contracts|keys[]' -r | grep "$class$")"
         #-exec cp -f {} "$DIR" \;
     echo "$DAPP_LIB/$lib/out" >> run.log
     echo "$CONTRACT_PATH" >> run.log
@@ -153,11 +153,16 @@ dappCreate() {
 
 sethSend() {
     set -e
-    echo "seth send $*"
+
+    if [[ $SETH_ASYNC == 'yes' ]]; then
+        echo "seth send $*" > seth_send.log
+    else
+        echo "seth send $*"
+    fi
     ETH_NONCE=$(cat "$NONCE_TMP_FILE")
-    ETH_NONCE="$ETH_NONCE" seth send "$@"
+    result="$(ETH_NONCE="$ETH_NONCE" seth send "$@")"
     echo $((ETH_NONCE + 1)) > "$NONCE_TMP_FILE"
-    echo ""
+    echo "$result"
 }
 
 join() {

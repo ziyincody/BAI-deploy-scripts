@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+. "$OUT_DIR/load-core-addr-temp"
+
+uniswap_router=$(jq -r ".import.uniswap_router | values" "$CONFIG_FILE")
+uniswap_factory=$(jq -r ".import.uniswap_factory | values" "$CONFIG_FILE")
+chainlink_eth_usd=$(jq -r ".import.chainlink_eth_usd | values" "$CONFIG_FILE")
+weth=$(jq -r ".import.weth | values" "$CONFIG_FILE")
+uniswap_medianizer_deployer=$(dappCreate h2o-governance-actions DeployUniswapMedianizer)
+dsm_and_wrapper_deployer=$(dappCreate h2o-governance-actions DeployDSMandWrapper)
+
+
+dsm_deviation=$(jq -r ".coin.oracle_deploy.dsm_deviation | values" "$CONFIG_FILE")
+dsm_deviation=$(echo "$dsm_deviation"*10^18 | bc)
+dsm_deviation="${dsm_deviation%.*}"
+echo "$dsm_deviation"
+
+sethSend "$GEB_COIN" "mint(address,uint256)" "$ETH_FROM" "50000000000000000000" 
+sethSend "$GEB_COIN" "approve(address,uint256)" "$uniswap_router" "10000000000000000000" 
+
+sethSend "$uniswap_router" "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)" "$GEB_COIN" "10000000000000000000" "10000000000000000000" "10000000000000000" "$ETH_FROM" "1635925448994" "--value" "1000000000000000"
+
+window_size="15"
+max_window_size="86400"
+calldata="$(seth calldata "execute(address,address,address,address,address,uint256,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$chainlink_eth_usd" "$uniswap_factory" "$GEB_COIN" "$weth" "$window_size" "$max_window_size")"
+
+export SETH_ASYNC=yes
+medianizer_tx="$(sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$uniswap_medianizer_deployer" "$calldata")"
+echo "$medianizer_tx"
+export SETH_ASYNC=no
+
+tx_topics="$(seth receipt "$medianizer_tx" logs | jq -c '.| .[] | select(.topics[0] == "0x9d1bccfbc412730c36f0d572d0b9a3b9514ca3c3496a3df9e2065b342d2c9aaa") | .topics')"
+GEB_COIN_USD_ORACLE="$(seth --to-hex "$(seth --to-dec "$(echo $tx_topics | jq -r ".[1]")")")"
+collateral_type_name="$(seth --to-bytes32 "$(seth --from-ascii "H2O")")"
+echo "$GEB_STABILITY_FEE_TREASURY"
+echo "$GEB_COIN_USD_ORACLE"
+echo "$FSM_GOV_INTERFACE"
+echo "$collateral_type_name" 
+echo "$dsm_deviation"
+calldata="$(seth calldata "execute(address,address,address,bytes32,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$GEB_COIN_USD_ORACLE" "$FSM_GOV_INTERFACE" "$collateral_type_name" "$dsm_deviation")"
+
+export SETH_ASYNC=yes
+dsm_tx="$(sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$dsm_and_wrapper_deployer" "$calldata")"
+export SETH_ASYNC=no
+
+echo "$dsm_tx"
+dsm_tx_topics="$(seth receipt "$dsm_tx" logs | jq -c '.| .[] | select(.topics[0] == "0x7eb4931acc82cc4882d7d01cdc37a64ec7092a3fad0f567f99dc360c874a7e12") | .topics')"
+GEB_COIN_DSM="$(seth --to-hex "$(seth --to-dec "$(echo $dsm_tx_topics | jq -r ".[1]")")")"
+GEB_COIN_FSM_WRAPPER="$(seth --to-hex "$(seth --to-dec "$(echo $dsm_tx_topics | jq -r ".[2]")")")"
+echo "$dsm_tx_topics"
+cat > "$OUT_DIR/load-coin-oracle-addr-temp" <<EOF
+#!/bin/bash
+export GEB_COIN_USD_ORACLE=$GEB_COIN_USD_ORACLE
+export GEB_COIN_DSM=$GEB_COIN_DSM
+export GEB_COIN_FSM_WRAPPER=$GEB_COIN_FSM_WRAPPER
+EOF

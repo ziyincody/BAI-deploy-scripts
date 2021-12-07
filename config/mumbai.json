@@ -3,10 +3,10 @@
   "import": {
     "esm_threshold_setter": "0x0000000000000000000000000000000000000000",
     "faucet": "0x0000000000000000000000000000000000000000",
-    "uniswap_factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
-    "uniswap_router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-    "chainlink_eth_usd": "0x9326BFA02ADD2366b30bacB125260Af641031331",
-    "weth": "0xd0a1e359811322d97991e03f863a0c30c2cf029c"
+    "uniswap_factory": "0xa83934dDC673903C481014c1Ead81470a4fF3431",
+    "uniswap_router": "0x47047Af04e8a8A33AeAF81a2564a09f89Ee99D10",
+    "chainlink_eth_usd": "0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada",
+    "weth": "0x86652c1301843B4E06fBfbBDaA6849266fb2b5e7"
   },
   "uniswap": {
     "coin_to_deposit_pool": "800",

@@ -23,20 +23,20 @@ CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
 loadAddresses
 
-log "SET COLLATERAL AUCTION:"
+log "SET COLLATERAL LIQUIDATION ENGINE:"
 
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 for token in $tokens; do
     collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
     for collateral_type in $collateral_types; do
-            liquidation_penalty="$(jq ".tokens.${token}.collateral_types.${collateral_type}.liquidation_penalty" "$CONFIG_FILE")"
-            calldata="$(seth calldata 'modifyParameters(bytes32,bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "$token")")" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationPenalty")")" "$liquidation_penalty")"
+            collateral_type_name=$(seth --to-bytes32 "$(seth --from-ascii "${token}-${collateral_type}")")
+
+            liquidation_penalty="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.liquidation_penalty" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_LIQUIDATION_ENGINE")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationPenalty")")" "$liquidation_penalty"
             
-            sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$(eval echo "\$GEB_LIQUIDATION_ENGINE")" "$calldata"
-            liquidation_quantity="$(jq ".tokens.${token}.collateral_types.${collateral_type}.liquidation_quantity" "$CONFIG_FILE")"
-            calldata="$(seth calldata 'modifyParameters(bytes32,bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "$token")")" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationQuantity")")" "$liquidation_quantity")"
+            liquidation_quantity="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.liquidation_quantity" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_LIQUIDATION_ENGINE")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationQuantity")")" "$liquidation_quantity"
             
-            sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$(eval echo "\$GEB_LIQUIDATION_ENGINE")" "$calldata"
     done
 done
 

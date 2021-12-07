@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+# Get config variables
+CONFIG_FILE="$OUT_DIR/config.json"
+# Get addresses
+loadAddresses
+. "$OUT_DIR/load-collateral_types-addr-temp"
+
+log "SET COLLATERAL AUCTION:"
+
+tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+for token in $tokens; do
+    collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
+    for collateral_type in $collateral_types; do
+        collateral_type_name=$(seth --to-bytes32 "$(seth --from-ascii "${token}-${collateral_type}")")
+
+
+        auction_deploy="$(jq ".tokens.${token}.collateral_types.${collateral_type} | .auction_deploy!=null" "$CONFIG_FILE")"
+        if [[ "$auction_deploy" == true ]]; then
+            sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$collateral_type_name" "$ETH_FROM"
+    
+    
+            lower_collateral_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.lower_collateral_median_deviation" "$CONFIG_FILE")"
+
+            sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "lowerCollateralMedianDeviation")")" "$lower_collateral_median_deviation"
+
+            upper_collateral_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.upper_collateral_median_deviation" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "upperCollateralMedianDeviation")")" "$upper_collateral_median_deviation"
+
+            lower_system_coin_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.lower_system_coin_median_deviation" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "lowerSystemCoinMedianDeviation")")" "$lower_system_coin_median_deviation"
+
+            upper_system_coin_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.upper_system_coin_median_deviation" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "upperSystemCoinMedianDeviation")")" "$upper_system_coin_median_deviation"
+
+            min_system_coin_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.min_system_coin_median_deviation" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "minSystemCoinMedianDeviation")")" "$min_system_coin_median_deviation"
+
+            fixed_discount="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.fixed_discount" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "discount")")" "$fixed_discount"
+
+            minimum_bid="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.minimum_bid" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "minimumBid")")" "$minimum_bid"
+            
+            
+            
+            sethSend "$GEB_DEPLOY" 'releaseAuthCollateralAuctionHouse(bytes32, address)' "$collateral_type_name" "$ETH_FROM"
+
+        fi
+        
+    done
+done
+
+# sethSend "$FLIPPER_MOM" 'setAuthority(address)' "$MCD_ADM"
+# sethSend "$FLIPPER_MOM" 'setOwner(address)' "$MCD_PAUSE_PROXY"

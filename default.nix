@@ -51,7 +51,7 @@ let
     # dss-deploy-optimized-runs-1 = deps'.dss-deploy  // { name = "dss-deploy-optimized-runs-1"; solcFlags = "--optimize --optimize-runs 1"; solc = solc-static-versions.solc_0_6_12; };
     # symbolic-voting = deps'.symbolic-voting         // { name = "symbolic-voting";             solc = solc-static-versions.solc_0_6_6; };
     # ds-vote-quorum = deps'.ds-vote-quorum             // { name = "ds-vote-quorum";     solcFlags = "--optimize --optimize-runs 2000"; solc = solc-static-versions.solc_0_6_7; };
-    geb-governance-actions = deps'.geb-governance-actions             // { name = "geb-governance-actions";     solcFlags = "--optimize --optimize-runs 2000"; solc = solc-static-versions.solc_0_6_7; };
+    h2o-governance-actions = deps'.h2o-governance-actions             // { name = "h2o-governance-actions";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_7; };
     # vote-delegate = deps'.vote-delegate             // { name = "vote-delegate";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_12; };
     # dss-vest = deps'.dss-vest                       // { name = "dss-vest-optimized";          solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_12; };
    dss-chain-log = deps'.dss-chain-log             // { name = "dss-chain-log";     solcFlags = "--optimize --optimize-runs 200"; solc = solc-static-versions.solc_0_6_12; };

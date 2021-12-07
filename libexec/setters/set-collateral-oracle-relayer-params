@@ -23,16 +23,19 @@ CONFIG_FILE="$OUT_DIR/config.json"
 # Get addresses
 loadAddresses
 
-log "SET COLLATERAL AUCTION:"
+log "SET COLLATERAL ORACLE RELAYER:"
 
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 for token in $tokens; do
     collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
     for collateral_type in $collateral_types; do
-            stability_fee="$(jq ".tokens.${token}.collateral_types.${collateral_type}.stability_fee" "$CONFIG_FILE")"
-            calldata="$(seth calldata 'modifyParameters(bytes32,bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "$token")")" "$(seth --to-bytes32 "$(seth --from-ascii "stabilityFee")")" "$stability_fee")"
+            collateral_type_name=$(seth --to-bytes32 "$(seth --from-ascii "${token}-${collateral_type}")")
+            safety_c_ratio="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.safety_c_ratio" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "safetyCRatio")")" "$safety_c_ratio"
             
-            sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$(eval echo "\$GEB_TAX_COLLECTOR")" "$calldata"
+            liquidation_c_ratio="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.liquidation_c_ratio" "$CONFIG_FILE")"
+            sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationCRatio")")" "$liquidation_c_ratio"
+            
     done
 done
 
