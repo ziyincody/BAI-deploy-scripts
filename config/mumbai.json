@@ -3,10 +3,10 @@
     "import": {
         "esm_threshold_setter": "0x0000000000000000000000000000000000000000",
         "faucet": "0x0000000000000000000000000000000000000000",
-        "uniswap_factory": "0xa83934dDC673903C481014c1Ead81470a4fF3431",
-        "uniswap_router": "0x47047Af04e8a8A33AeAF81a2564a09f89Ee99D10",
+        "uniswap_factory": "0x5757371414417b8c6caad45baef941abc7d3ab32",
+        "uniswap_router": "0x8954AfA98594b838bda56FE4C12a09D7739D179b",
         "chainlink_eth_usd": "0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada",
-        "weth": "0x86652c1301843B4E06fBfbBDaA6849266fb2b5e7"
+        "weth": "0x9c3c9283d3e44854697cd22d3faa240cfb032889"
     },
     "uniswap": {
         "coin_to_deposit_pool": "800",
@@ -33,6 +33,60 @@
         "symbol": "AQA",
         "name": "AQA governance Token",
         "type": "Delegate",
+        "staking": {
+            "reward_timeline": {
+                "value": "172800",
+                "unit": "seconds"
+            },
+            "reward_calculation_delay": {
+                "value": "120",
+                "unit": "seconds"
+            },
+            "max_delay": {
+                "value": "2592000",
+                "unit": "seconds"
+            },
+            "exit_delay": {
+                "value": "1814400",
+                "unit": "seconds"
+            },
+            "min_staked_tokens_to_keep": {
+                "value": "1",
+                "unit": "WAD"
+            },
+            "tokens_to_auction": {
+                "value": "5",
+                "unit": "WAD"
+            },
+            "system_coins_to_request": {
+                "value": "10",
+                "unit": "RAD"
+            },
+            "percentage_vested": {
+                "value": "40",
+                "unit": "hundreds"
+            },
+            "escrow_duration": {
+                "value": "600",
+                "unit": "seconds"
+            },
+            "duration_to_start_escrow": {
+                "value": "120",
+                "unit": "seconds"
+            },
+            "open_refill": {
+                "value": "0",
+                "unit": "seconds"
+            },
+            "refill_delay": {
+                "value": "60",
+                "unit": "seconds"
+            },
+            "refill_amount": {
+                "value": "1",
+                "unit": "WAD"
+            }
+        },
         "oracle_deploy": {
             "deploy": "0",
             "type": "UniswapConsecutiveSlots",
@@ -126,13 +180,34 @@
         "max_candidates_per_ballot": "5"
     },
     "accounting_engine": {
-        "pop_debt_delay": "1036800",
-        "surplus_auction_delay": "0",
-        "initial_debt_auction_minted_tokens": "439",
-        "debt_auction_bid_size": "35000",
-        "surplus_auction_amount_to_sell": "6000",
-        "surplus_buffer": "500000",
-        "disable_cooldown": "1814400"
+        "pop_debt_delay": {
+            "value": "1036800",
+            "unit": "seconds"
+        },
+        "surplus_auction_delay": {
+            "value": "0",
+            "unit": "seconds"
+        },
+        "initial_debt_auction_minted_tokens": {
+            "value": "439",
+            "unit": "WAD"
+        },
+        "debt_auction_bid_size": {
+            "value": "0.5",
+            "unit": "RAD"
+        },
+        "surplus_auction_amount_to_sell": {
+            "value": "0.5",
+            "unit": "RAD"
+        },
+        "surplus_buffer": {
+            "value": "500000",
+            "unit": "RAD"
+        },
+        "disable_cooldown": {
+            "value": "1814400",
+            "unit": "seconds"
+        }
     },
     "liquidation_engine": {
         "on_auction_system_coin_limit": "10000000000000"
@@ -168,7 +243,7 @@
     },
     "governance": {
         "type": "MULTISIG-SAFE",
-        "owners": "-/-"
+        "owners": []
     },
     "undefined": "1",
     "auto_surplus_buffer_setter": {
@@ -292,7 +367,10 @@
         "sub_type": "RawPerSecond",
         "nb": "1000000000000000000",
         "Kc": "0",
-        "Kp_current": "5000000000000000",
+        "Kp_current": {
+            "value": "0.000000075",
+            "unit": "WAD"
+        },
         "Kp": {
             "value": "0.000000075",
             "unit": "WAD"
@@ -335,7 +413,7 @@
         "amounts": [
             "1000000"
         ],
-        "holders": "-/-"
+        "holders": []
     },
     "coin": {
         "type": "INDEX",
@@ -478,7 +556,7 @@
                 "params": [
                     "1000000000000000000000000"
                 ],
-                "extraParams": "-/-"
+                "extraParams": []
             },
             "undefined": "990000000000000000000000",
             "faucetAmount": "50000000000000000000",
@@ -600,9 +678,9 @@
                     },
                     "treasury_fee_portion": "50000000000000000000",
                     "secondary_tax_receivers": {
-                        "percentages": "-/-"
+                        "percentages": []
                     },
-                    "undefined": "-/-"
+                    "undefined": []
                 }
             }
         }
