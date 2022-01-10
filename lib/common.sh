@@ -102,6 +102,53 @@ copy() {
     copyMeta "$lib"
 }
 
+readValue() {
+    local jq_path; jq_path=$1
+    local config_file; config_file=$2
+    local format; format=$3
+    raw_value=$(jq  -r "$jq_path" "$config_file")
+    unit=$(echo "$raw_value" | jq -r ".unit" 2>/dev/null)
+    value=$(echo "$raw_value" | jq -r ".value" 2>/dev/null)
+    if [[ -z "$unit" ]]; then
+        
+        case "$format" in
+            int256)
+                echo "$(seth --to-int256 "$raw_value")"
+                ;;
+            *)
+                echo "$raw_value"
+                ;;
+        esac
+    else
+        digits="0"
+        case "$unit" in
+            WAD)
+                digits="18"
+                ;;
+            RAY)
+                digits="27"
+                ;;
+            RAD)
+                digits="45"
+                ;;
+            *)
+                digits="0"
+                ;;
+        esac
+        final_value="$(echo "$value*10^$digits/1" | bc)"
+        
+        case "$format" in
+            int256)
+                echo "$(seth --to-int256 "$final_value")"
+                ;;
+            *)
+                echo "$final_value"
+                ;;
+        esac
+    fi
+}
+
+
 dappCreate() {
     set -e
     local lib; lib=$1

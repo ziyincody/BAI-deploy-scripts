@@ -314,6 +314,21 @@
         "url": "https://github.com/reflexer-labs/ds-token"
       }
     },
+    "ds-token_dd409a7_out": {
+      "deps": {
+        "ds-math": "ds-math_a3c1333",
+        "ds-stop": "ds-stop_51c466a",
+        "ds-test": "ds-test_24c2259",
+        "erc20": "erc20_562dab5"
+      },
+      "name": "ds-token_latest",
+      "repo": {
+        "name": "ds-token-dd409a7",
+        "ref": "HEAD",
+        "rev": "dd409a7b3dcac4bc85677d5b66acd1c122145afa",
+        "url": "git@github.com:reflexer-labs/ds-token"
+      }
+    },
     "ds-value_5aaf162": {
       "deps": {
         "ds-test": "ds-test_24c2259",
@@ -473,6 +488,19 @@
         "ref": "HEAD",
         "rev": "9507e8d8c31007f82b8e6820be12eb4cc733812e",
         "url": "https://github.com/reflexer-labs/geb-basic-multisig"
+      }
+    },
+    "geb-chainlink-median_c831e55": {
+      "deps": {
+        "ds-token": "ds-token_dd409a7",
+        "geb-treasury-reimbursement": "geb-treasury-reimbursement_8e3d852"
+      },
+      "name": "geb-chainlink-median",
+      "repo": {
+        "name": "geb-chainlink-median-c831e55",
+        "ref": "HEAD",
+        "rev": "c831e5505272ad0e226a0b2d926273882a30bcbc",
+        "url": "git@github.com:reflexer-labs/geb-chainlink-median"
       }
     },
     "geb-collateral-auction-throttler_058fc25": {
@@ -644,6 +672,32 @@
         "url": "https://github.com/reflexer-labs/geb-incentives"
       }
     },
+    "geb-keeper-flash-proxy_5b05bf9": {
+      "deps": {
+        "ds-token": "ds-token_229ec71",
+        "ds-weth": "ds-weth_8bf60f2",
+        "geb-proxy-actions": "geb-proxy-actions_a7bbc32"
+      },
+      "name": "geb-keeper-flash-proxy",
+      "repo": {
+        "name": "geb-keeper-flash-proxy-5b05bf9",
+        "ref": "HEAD",
+        "rev": "5b05bf9a036c3a52d7d5c5f8664d0c1fc03aeb6d",
+        "url": "git@github.com:reflexer-labs/geb-keeper-flash-proxy"
+      }
+    },
+    "geb-lender-first-resort_faed45b": {
+      "deps": {
+        "geb-deploy": "geb-deploy_1888162"
+      },
+      "name": "geb-lender-first-resort",
+      "repo": {
+        "name": "geb-lender-first-resort-faed45b",
+        "ref": "HEAD",
+        "rev": "faed45ba03c7225c876429bef568af1f90956c48",
+        "url": "git@github.com:reflexer-labs/geb-lender-first-resort"
+      }
+    },
     "geb-pause-schedule-proxy-actions_369b546": {
       "deps": {
         "ds-test": "ds-test_c0b770c"
@@ -676,6 +730,18 @@
         "ref": "HEAD",
         "rev": "83e00fc9518ae7e6bfba202765999ee86547edf5",
         "url": "https://github.com/reflexer-labs/geb-polling-emitter"
+      }
+    },
+    "geb-protocol-token-authority_23fe8a8": {
+      "deps": {
+        "ds-test": "ds-test_c0b770c"
+      },
+      "name": "geb-protocol-token-authority",
+      "repo": {
+        "name": "geb-protocol-token-authority-23fe8a8",
+        "ref": "HEAD",
+        "rev": "23fe8a8cc8965337ced081c00cbde647d22b8584",
+        "url": "git@github.com:reflexer-labs/geb-protocol-token-authority"
       }
     },
     "geb-proxy-actions_a7bbc32": {
@@ -802,6 +868,18 @@
         "url": "https://github.com/reflexer-labs/geb-safe-saviours"
       }
     },
+    "geb-stake-reward-refill_b452774": {
+      "deps": {
+        "ds-token": "ds-token_dd409a7"
+      },
+      "name": "geb-stake-reward-refill",
+      "repo": {
+        "name": "geb-stake-reward-refill-b452774",
+        "ref": "HEAD",
+        "rev": "b4527749cdffb38454c1cd8e5b83248861eb2b11",
+        "url": "git@github.com:reflexer-labs/geb-stake-reward-refill"
+      }
+    },
     "geb-treasury-reimbursement_096de20": {
       "deps": {
         "ds-test": "ds-test_c0b770c",
@@ -850,6 +928,18 @@
         "name": "geb-treasury-reimbursement-59d8d97",
         "ref": "HEAD",
         "rev": "59d8d97b755d508117d55770a500c84968d610a0",
+        "url": "https://github.com/reflexer-labs/geb-treasury-reimbursement"
+      }
+    },
+    "geb-treasury-reimbursement_8e3d852": {
+      "deps": {
+        "ds-token": "ds-token_dd409a7"
+      },
+      "name": "geb-treasury-reimbursement",
+      "repo": {
+        "name": "geb-treasury-reimbursement-8e3d852",
+        "ref": "HEAD",
+        "rev": "8e3d8526509b5a060a548d0d25c54ac2659d9f37",
         "url": "https://github.com/reflexer-labs/geb-treasury-reimbursement"
       }
     },
@@ -1030,6 +1120,7 @@
       "ds-proxy": "ds-proxy_3960b51",
       "ds-roles": "ds-roles_c8cf240",
       "ds-token": "ds-token_229ec71",
+      "ds-token_latest": "ds-token_dd409a7_out",
       "ds-value": "ds-value_5aaf162",
       "dss-chain-log": "dss-chain-log_83e7a01",
       "erc20": "erc20_562dab5",
@@ -1037,15 +1128,19 @@
       "geb-auto-surplus-auctioned": "geb-auto-surplus-auctioned_bb028d8",
       "geb-auto-surplus-buffer": "geb-auto-surplus-buffer_6aaf647",
       "geb-basic-multisig": "geb-basic-multisig_9507e8d",
+      "geb-chainlink-median": "geb-chainlink-median_c831e55",
       "geb-debt-auction-param-setter": "geb-debt-auction-param-setter_8621492",
       "geb-debt-ceiling-setter": "geb-debt-ceiling-setter_6f3a065",
       "geb-deploy": "geb-deploy_1511de4",
       "geb-deploy-pause-proxy-actions": "geb-deploy-pause-proxy-actions_3a4dc1b",
       "geb-fsm": "geb-fsm_ff83ea8",
       "geb-fsm-governance-interface": "geb-fsm-governance-interface_e673d8d",
+      "geb-keeper-flash-proxy": "geb-keeper-flash-proxy_5b05bf9",
+      "geb-lender-first-resort": "geb-lender-first-resort_faed45b",
       "geb-pause-schedule-proxy-actions": "geb-pause-schedule-proxy-actions_369b546",
       "geb-pit": "geb-pit_0b779cc",
       "geb-polling-emitter": "geb-polling-emitter_83e00fc",
+      "geb-protocol-token-authority": "geb-protocol-token-authority_23fe8a8",
       "geb-proxy-actions": "geb-proxy-actions_a7bbc32",
       "geb-proxy-registry": "geb-proxy-registry_6d662fd",
       "geb-redemption-price-snap": "geb-redemption-price-snap_abbea26",
@@ -1053,6 +1148,7 @@
       "geb-rrfm-rate-setter": "geb-rrfm-rate-setter_9151b47",
       "geb-safe-manager": "geb-safe-manager_df6489f",
       "geb-safe-saviours": "geb-safe-saviours_3c8309c",
+      "geb-stake-reward-refill": "geb-stake-reward-refill_b452774",
       "geb-uniswap-median": "geb-uniswap-median_f19c796",
       "h20-deploy": "h20-deploy_68357e0",
       "h2o-debt-floor-adjuster": "h2o-debt-floor-adjuster_fcd69bd",

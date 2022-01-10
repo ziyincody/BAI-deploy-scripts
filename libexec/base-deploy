@@ -29,7 +29,6 @@ eval "export UNISWAP_FACTORY=${contract}"
 eval "export UNISWAP_FACTORY=0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
 eval "export UNISWAP_ROUTER=0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
-
 # Deploy  the oracle module and medianizer contract
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 # Deploy Multicall
@@ -143,8 +142,7 @@ fi
 # If no Governance token is defined, create one
 if [ -z "$GEB_PROT" ]
 then
-    GEB_PROT="$(dappCreate ds-token DSToken '"FLX"' '"FLX"')"
-    #GEB_GOV=$(dappCreate ds-token DSToken '"AQA"')
+    GEB_PROT="$(dappCreate ds-token DSToken '"AQA"' '"AQA"')"
 fi
 
 # Mint Gov Token, send to the Faucet and set permissions if a new token
@@ -226,6 +224,7 @@ sethSend "$GEB_DEPLOY" 'giveControl(address)' "$ETH_FROM"
 
 cat > "$OUT_DIR/load-core-addr-temp" <<EOF
 #!/bin/bash
+export GEB_PROT=$GEB_PROT
 export GEB_SAFE_ENGINE=$GEB_SAFE_ENGINE
 export GEB_TAX_COLLECTOR=$GEB_TAX_COLLECTOR
 export GEB_ACCOUNTING_ENGINE=$GEB_ACCOUNTING_ENGINE
@@ -259,11 +258,16 @@ GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
 sethSend "$FSM_GOV_INTERFACE" 'setOwner(address)' "$PROXY_DEPLOYER"
 
 "$LIBEXEC_DIR"/H20-core/deploy-coin-oracle
+
 "$LIBEXEC_DIR"/H20-core/deploy-rate-setter
 
 "$LIBEXEC_DIR"/H20-core/deploy-ceiling-setter
 
 "$LIBEXEC_DIR"/H20-core/deploy-auction-throttler
+
+"$LIBEXEC_DIR"/H20-core/deploy-keeper-flash-proxy
+
+"$LIBEXEC_DIR"/H20-core/deploy-proto-auth
 
 # saveCooldown
 SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
@@ -323,6 +327,8 @@ EOF
 
 "$LIBEXEC_DIR"/setters/set-safe-engine-params
 
+"$LIBEXEC_DIR"/setters/set-accounting-engine-params
+
 "$LIBEXEC_DIR"/H20-core/deploy-collaterals
 
 "$LIBEXEC_DIR"/setters/set-collateral-auction-params
@@ -335,4 +341,25 @@ EOF
 
 "$LIBEXEC_DIR"/setters/set-collateral-oracle-relayer-params
 
+"$LIBEXEC_DIR"/H20-core/deploy-staking
+
 sethSend "$GEB_DEPLOY" 'takeControl(address)' "$ETH_FROM"
+
+
+
+########### POST DEPLOYMENT ACTIONS
+
+# Collateral OSM delay interval
+# CALLDATA_OUTPUT=$(seth calldata  "changeDelay(address, uint16)" FSM_ADDRESS 1)
+# ETH_GAS=5000000 seth send $PROXY_DEPLOYER "execute(address,bytes)" 0x65dfbbb756c1fa643c1dd6706ad9667e59bfa776 \
+#    $CALLDATA_OUTPUT
+
+# Rate setter update delay
+# seth send $GEB_RRFM_SETTER "modifyParameters(bytes32,uint256)"   "$(seth --to-bytes32 $(seth --from-ascii  'updateRateDelay'))" 1
+# seth send $GEB_RRFM_CALCULATOR "modifyParameters(bytes32,uint256)"   "$(seth --to-bytes32 $(seth --from-ascii ps))" 60
+
+# To set lastReadRedemptionPrice on FixedDiscount Collateral House (only after first auction is created):
+# Unless this is set, auction keeper won't be able to bid on auction
+# seth send <COLLATERAL_AUCTION_HOUSE> "getCollateralBought(uint256,uint256)" 1 1000000000000000000000
+
+# Create AQA / MATIC pool for staking rewards

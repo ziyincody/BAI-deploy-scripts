@@ -38,26 +38,26 @@ for token in $tokens; do
             sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$collateral_type_name" "$ETH_FROM"
     
     
-            lower_collateral_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.lower_collateral_median_deviation" "$CONFIG_FILE")"
+            lower_collateral_median_deviation="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.lower_collateral_median_deviation" "$CONFIG_FILE")"
 
             sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "lowerCollateralMedianDeviation")")" "$lower_collateral_median_deviation"
 
-            upper_collateral_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.upper_collateral_median_deviation" "$CONFIG_FILE")"
+            upper_collateral_median_deviation="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.upper_collateral_median_deviation" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "upperCollateralMedianDeviation")")" "$upper_collateral_median_deviation"
 
-            lower_system_coin_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.lower_system_coin_median_deviation" "$CONFIG_FILE")"
+            lower_system_coin_median_deviation="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.lower_system_coin_median_deviation" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "lowerSystemCoinMedianDeviation")")" "$lower_system_coin_median_deviation"
 
-            upper_system_coin_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.upper_system_coin_median_deviation" "$CONFIG_FILE")"
+            upper_system_coin_median_deviation="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.upper_system_coin_median_deviation" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "upperSystemCoinMedianDeviation")")" "$upper_system_coin_median_deviation"
 
-            min_system_coin_median_deviation="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.min_system_coin_median_deviation" "$CONFIG_FILE")"
+            min_system_coin_median_deviation="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.min_system_coin_median_deviation" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "minSystemCoinMedianDeviation")")" "$min_system_coin_median_deviation"
 
-            fixed_discount="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.fixed_discount" "$CONFIG_FILE")"
+            fixed_discount="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.fixed_discount" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "discount")")" "$fixed_discount"
 
-            minimum_bid="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.minimum_bid" "$CONFIG_FILE")"
+            minimum_bid="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.auction_deploy.minimum_bid" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_COLLATERAL_AUCTION_HOUSE_${token}_${collateral_type}")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "minimumBid")")" "$minimum_bid"
             
             

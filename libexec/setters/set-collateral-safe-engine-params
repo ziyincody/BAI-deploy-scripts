@@ -30,11 +30,11 @@ for token in $tokens; do
     collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
     for collateral_type in $collateral_types; do
             collateral_type_name=$(seth --to-bytes32 "$(seth --from-ascii "${token}-${collateral_type}")")
-            debt_ceiling="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.debt_ceiling" "$CONFIG_FILE")"
+            debt_ceiling="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.debt_ceiling" "$CONFIG_FILE")"
             # Defined in RAY, convert accordingly
             sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "debtCeiling")")" "$debt_ceiling"
             
-            debt_floor="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.debt_floor" "$CONFIG_FILE")"
+            debt_floor="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.debt_floor" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "debtFloor")")" "$debt_floor"
             
     done

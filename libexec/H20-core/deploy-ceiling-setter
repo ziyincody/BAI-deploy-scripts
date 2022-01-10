@@ -20,21 +20,17 @@
 
 . "$OUT_DIR/load-core-addr-temp"
 
-base_caller_reward=$(jq -r ".single_ceiling_setter.base_caller_reward | values" "$CONFIG_FILE")
-base_caller_reward=$(echo "$base_caller_reward"*10^27 | bc)
-max_caller_reward=$(jq -r ".single_ceiling_setter.max_caller_reward | values" "$CONFIG_FILE")
-max_caller_reward=$(echo "$max_caller_reward"*10^27 | bc)
+base_caller_reward=$(readValue ".single_ceiling_setter.base_caller_reward | values" "$CONFIG_FILE")
+max_caller_reward=$(readValue ".single_ceiling_setter.max_caller_reward | values" "$CONFIG_FILE")
 
-reward_increase=$(jq -r ".single_ceiling_setter.reward_increase | values" "$CONFIG_FILE")
-reward_increase=$(echo "$reward_increase"*10^27 | bc)
-update_delay=$(jq -r ".single_ceiling_setter.update_delay | values" "$CONFIG_FILE")
+reward_increase=$(readValue ".single_ceiling_setter.reward_increase | values" "$CONFIG_FILE")
+update_delay=$(readValue ".single_ceiling_setter.update_delay | values" "$CONFIG_FILE")
 
-ceiling_percentage_change=$(jq -r ".single_ceiling_setter.ceiling_percentage_change | values" "$CONFIG_FILE")
+ceiling_percentage_change=$(readValue ".single_ceiling_setter.ceiling_percentage_change | values" "$CONFIG_FILE")
 
-max_collateral_ceiling=$(seth --to-int256 "$(jq -r ".single_ceiling_setter.max_collateral_ceiling | values" "$CONFIG_FILE")")
+max_collateral_ceiling=$(readValue ".single_ceiling_setter.max_collateral_ceiling | values" "$CONFIG_FILE" "int256")
 
-min_collateral_ceiling=$(jq -r ".single_ceiling_setter.min_collateral_ceiling | values" "$CONFIG_FILE")
-min_collateral_ceiling=$(echo "$min_collateral_ceiling"*10^45 | bc)
+min_collateral_ceiling=$(readValue ".single_ceiling_setter.min_collateral_ceiling | values" "$CONFIG_FILE")
 
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 collateral_token="${tokens[0]}"

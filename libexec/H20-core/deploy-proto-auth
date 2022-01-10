@@ -18,15 +18,15 @@
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
 
-# Get config variables
-CONFIG_FILE="$OUT_DIR/config.json"
-# Get addresses
-loadAddresses
+. "$OUT_DIR/load-core-addr-temp"
 
-log "SET SAFE ENGINE PARAMS:"
+PROTOCOL_TOKEN_AUTHORITY="$(dappCreate geb-protocol-token-authority ProtocolTokenAuthority)"
+sethSend "$GEB_ACCOUNTING_ENGINE" "modifyParameters(bytes32,address)" "$(seth --to-bytes32 "$(seth --from-ascii "protocolTokenAuthority")")" "$PROTOCOL_TOKEN_AUTHORITY"
+sethSend "$PROTOCOL_TOKEN_AUTHORITY" "addAuthorization(address)" "$GEB_DEBT_AUCTION_HOUSE"
 
-global_debt_ceiling="$(readValue ".safe_engine.global_debt_ceiling" "$CONFIG_FILE" "int256")"
-sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "globalDebtCeiling")")" "$global_debt_ceiling"
+sethSend "$GEB_PROT" "setAuthority(address)" "$PROTOCOL_TOKEN_AUTHORITY"
 
-safe_debt_ceiling="$(readValue ".safe_engine.safe_debt_ceiling" "$CONFIG_FILE")"
-sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "safeDebtCeiling")")" "$safe_debt_ceiling"
+cat > "$OUT_DIR/load-proto-auth-addr-temp" <<EOF
+#!/bin/bash
+export PROTOCOL_TOKEN_AUTHORITY=$PROTOCOL_TOKEN_AUTHORITY
+EOF

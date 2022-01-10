@@ -21,21 +21,18 @@
 . "$OUT_DIR/load-core-addr-temp"
 . "$OUT_DIR/load-coin-oracle-addr-temp"
 
-calculator_Kp=$(jq -r ".redemption_rate_calculator.Kp | values" "$CONFIG_FILE")
-calculator_period_size=$(jq -r ".redemption_rate_calculator.ps | values" "$CONFIG_FILE")
-calculator_noise_barrier=$(jq -r ".redemption_rate_calculator.nb | values" "$CONFIG_FILE")
-calculator_feedback_output_upper_bound=$(jq -r ".redemption_rate_calculator.foub | values" "$CONFIG_FILE")
-calculator_feedback_output_lower_bound=$(seth --to-int256 "$(jq -r ".redemption_rate_calculator.folb | values" "$CONFIG_FILE")")
+calculator_Kp=$(readValue ".redemption_rate_calculator.Kp | values" "$CONFIG_FILE")
+calculator_period_size=$(readValue ".redemption_rate_calculator.ps | values" "$CONFIG_FILE")
+calculator_noise_barrier=$(readValue ".redemption_rate_calculator.nb | values" "$CONFIG_FILE")
+calculator_feedback_output_upper_bound=$(readValue ".redemption_rate_calculator.foub | values" "$CONFIG_FILE")
+calculator_feedback_output_lower_bound="$(readValue ".redemption_rate_calculator.folb | values" "$CONFIG_FILE" "int256")"
 
-setter_base_caller_reward=$(jq -r ".redemption_rate_setter.base_caller_reward | values" "$CONFIG_FILE")
-setter_base_caller_reward=$(echo "$setter_base_caller_reward"*10^27 | bc)
-setter_max_caller_reward=$(jq -r ".redemption_rate_setter.max_caller_reward | values" "$CONFIG_FILE")
-setter_max_caller_reward=$(echo "$setter_max_caller_reward"*10^27 | bc)
-setter_reward_increase=$(jq -r ".redemption_rate_setter.reward_increase | values" "$CONFIG_FILE")
-setter_reward_increase=$(echo "$setter_reward_increase"*10^27 | bc)
-setter_reward_increase_timeline=$(jq -r ".redemption_rate_setter.reward_increase_timeline | values" "$CONFIG_FILE")
-setter_max_reward_increase_delay=$(jq -r ".redemption_rate_setter.max_reward_increase_delay | values" "$CONFIG_FILE")
-setter_update_rate_delay=$(jq -r ".redemption_rate_setter.update_rate_delay | values" "$CONFIG_FILE")
+setter_base_caller_reward=$(readValue ".redemption_rate_setter.base_caller_reward | values" "$CONFIG_FILE")
+setter_max_caller_reward=$(readValue ".redemption_rate_setter.max_caller_reward | values" "$CONFIG_FILE")
+setter_reward_increase=$(readValue ".redemption_rate_setter.reward_increase | values" "$CONFIG_FILE")
+setter_reward_increase_timeline=$(readValue ".redemption_rate_setter.reward_increase_timeline | values" "$CONFIG_FILE")
+setter_max_reward_increase_delay=$(readValue ".redemption_rate_setter.max_reward_increase_delay | values" "$CONFIG_FILE")
+setter_update_rate_delay=$(readValue ".redemption_rate_setter.update_rate_delay | values" "$CONFIG_FILE")
 
 
 ## Kp, periodSize, noiseBarrier, feedbackOutputUpperBound, feedbackOutputLowerBound(-(10^27-1))

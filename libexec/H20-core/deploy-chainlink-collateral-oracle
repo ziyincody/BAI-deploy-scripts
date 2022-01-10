@@ -18,15 +18,14 @@
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
 
-# Get config variables
-CONFIG_FILE="$OUT_DIR/config.json"
-# Get addresses
-loadAddresses
+. "$OUT_DIR/load-core-addr-temp"
 
-log "SET SAFE ENGINE PARAMS:"
+collateral_name="$1"
+chainlink_aggregator="$2"
+stale_threshold="86400"
+chainlink_relayer=$(dappCreate geb-chainlink-median ChainlinkRelayer "$chainlink_aggregator" "$stale_threshold")
 
-global_debt_ceiling="$(readValue ".safe_engine.global_debt_ceiling" "$CONFIG_FILE" "int256")"
-sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "globalDebtCeiling")")" "$global_debt_ceiling"
-
-safe_debt_ceiling="$(readValue ".safe_engine.safe_debt_ceiling" "$CONFIG_FILE")"
-sethSend "$(eval echo "\$GEB_SAFE_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "safeDebtCeiling")")" "$safe_debt_ceiling"
+cat > "$OUT_DIR/load-chainlink-$collateral_name-oracle-addr-temp" <<EOF
+#!/bin/bash
+export GEB_CHAINLINK_COLLATERAL_ORACLE_$collateral_name=$chainlink_relayer
+EOF

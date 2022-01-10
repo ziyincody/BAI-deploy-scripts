@@ -31,10 +31,10 @@ for token in $tokens; do
     for collateral_type in $collateral_types; do
             collateral_type_name=$(seth --to-bytes32 "$(seth --from-ascii "${token}-${collateral_type}")")
 
-            liquidation_penalty="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.liquidation_penalty" "$CONFIG_FILE")"
+            liquidation_penalty="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.liquidation_penalty" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_LIQUIDATION_ENGINE")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationPenalty")")" "$liquidation_penalty"
             
-            liquidation_quantity="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.liquidation_quantity" "$CONFIG_FILE")"
+            liquidation_quantity="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.liquidation_quantity" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_LIQUIDATION_ENGINE")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationQuantity")")" "$liquidation_quantity"
             
     done

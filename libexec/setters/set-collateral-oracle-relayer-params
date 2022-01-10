@@ -30,10 +30,10 @@ for token in $tokens; do
     collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
     for collateral_type in $collateral_types; do
             collateral_type_name=$(seth --to-bytes32 "$(seth --from-ascii "${token}-${collateral_type}")")
-            safety_c_ratio="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.safety_c_ratio" "$CONFIG_FILE")"
+            safety_c_ratio="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.safety_c_ratio" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "safetyCRatio")")" "$safety_c_ratio"
             
-            liquidation_c_ratio="$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.liquidation_c_ratio" "$CONFIG_FILE")"
+            liquidation_c_ratio="$(readValue ".tokens.${token}.collateral_types.${collateral_type}.liquidation_c_ratio" "$CONFIG_FILE")"
             sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,bytes32,uint256)' "$collateral_type_name" "$(seth --to-bytes32 "$(seth --from-ascii "liquidationCRatio")")" "$liquidation_c_ratio"
             
     done
