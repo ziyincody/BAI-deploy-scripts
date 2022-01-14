@@ -1033,7 +1033,7 @@
         "name": "h20-deploy-81ce6ef",
         "ref": "adding-fixed-collateral-auction-house-discount",
         "rev": "68357e030206efec2bb170ae1c33e70e7bcce3fc",
-        "url": "http://github.com/stablecoin-research/h20-deploy"
+        "url": "git@github.com:stablecoin-research/h20-deploy"
       }
     },
     "h2o-chainlink-median_5d51c6d": {
