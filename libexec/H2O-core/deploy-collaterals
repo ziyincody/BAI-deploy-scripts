@@ -49,7 +49,7 @@ for token in $tokens; do
     logAddr "${token}" "${tokenAddress}"
 
     price_feed=$(jq -r ".tokens.${token}.oracle_deploy.import.price_feed" "$CONFIG_FILE")
-    "$LIBEXEC_DIR"/H20-core/deploy-chainlink-collateral-oracle "$token" "$price_feed"
+    "$LIBEXEC_DIR"/H2O-core/deploy-chainlink-collateral-oracle "$token" "$price_feed"
 
     . "$OUT_DIR/load-chainlink-$token-oracle-addr-temp"
     collateral_oracle="GEB_CHAINLINK_COLLATERAL_ORACLE_$token"

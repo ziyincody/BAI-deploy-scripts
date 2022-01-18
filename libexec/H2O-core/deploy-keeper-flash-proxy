@@ -23,7 +23,7 @@
 weth=$(jq -r ".import.weth | values" "$CONFIG_FILE")
 uniswap_factory=$(jq -r ".import.uniswap_factory | values" "$CONFIG_FILE")
 
-GEB_UNISWAP_MULTI_COLLATERAL_KEEPER_FLASH_PROXY="$(dappCreate geb-keeper-flash-proxy GebUniswapV2MultiCollateralKeeperFlashProxy \
+GEB_UNISWAP_MULTI_COLLATERAL_KEEPER_FLASH_PROXY="$(dappCreate h2o-keeper-flash-proxy GebUniswapV2MultiCollateralKeeperFlashProxy \
     "$weth" \
     "$GEB_COIN" \
     "$uniswap_factory" \

@@ -124,7 +124,7 @@ PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseP
 
 
 # Deploy Fabs
-"$LIBEXEC_DIR/H20-core/deploy-fab"
+"$LIBEXEC_DIR/H2O-core/deploy-fab"
 # shellcheck source=/dev/null
 . "$OUT_DIR/load-fabs-addr-temp"
 rm "$OUT_DIR/load-fabs-addr-temp"
@@ -257,17 +257,17 @@ GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
 
 sethSend "$FSM_GOV_INTERFACE" 'setOwner(address)' "$PROXY_DEPLOYER"
 
-"$LIBEXEC_DIR"/H20-core/deploy-coin-oracle
+"$LIBEXEC_DIR"/H2O-core/deploy-coin-oracle
 
-"$LIBEXEC_DIR"/H20-core/deploy-rate-setter
+"$LIBEXEC_DIR"/H2O-core/deploy-rate-setter
 
-"$LIBEXEC_DIR"/H20-core/deploy-ceiling-setter
+"$LIBEXEC_DIR"/H2O-core/deploy-ceiling-setter
 
-"$LIBEXEC_DIR"/H20-core/deploy-auction-throttler
+"$LIBEXEC_DIR"/H2O-core/deploy-auction-throttler
 
-"$LIBEXEC_DIR"/H20-core/deploy-keeper-flash-proxy
+"$LIBEXEC_DIR"/H2O-core/deploy-keeper-flash-proxy
 
-"$LIBEXEC_DIR"/H20-core/deploy-proto-auth
+"$LIBEXEC_DIR"/H2O-core/deploy-proto-auth
 
 # saveCooldown
 SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
@@ -329,7 +329,7 @@ EOF
 
 "$LIBEXEC_DIR"/setters/set-accounting-engine-params
 
-"$LIBEXEC_DIR"/H20-core/deploy-collaterals
+"$LIBEXEC_DIR"/H2O-core/deploy-collaterals
 
 "$LIBEXEC_DIR"/setters/set-collateral-auction-params
 
@@ -341,7 +341,7 @@ EOF
 
 "$LIBEXEC_DIR"/setters/set-collateral-oracle-relayer-params
 
-"$LIBEXEC_DIR"/H20-core/deploy-staking
+"$LIBEXEC_DIR"/H2O-core/deploy-staking
 
 sethSend "$GEB_DEPLOY" 'takeControl(address)' "$ETH_FROM"
 
@@ -363,3 +363,8 @@ sethSend "$GEB_DEPLOY" 'takeControl(address)' "$ETH_FROM"
 # seth send <COLLATERAL_AUCTION_HOUSE> "getCollateralBought(uint256,uint256)" 1 1000000000000000000000
 
 # Create AQA / MATIC pool for staking rewards
+
+# Update last read redemption price in collateral auction house
+# seth send 0xe77692873473102047f108CEFdF2A62432f781ff "getCollateralBought(uint256,uint256)" 1 10000000000000000000000000000
+
+# Ensure OCEAN/H2O uni V2 pool was created

@@ -672,18 +672,18 @@
         "url": "https://github.com/reflexer-labs/geb-incentives"
       }
     },
-    "geb-keeper-flash-proxy_5b05bf9": {
+    "h2o-keeper-flash-proxy_52667f7": {
       "deps": {
         "ds-token": "ds-token_229ec71",
         "ds-weth": "ds-weth_8bf60f2",
         "geb-proxy-actions": "geb-proxy-actions_a7bbc32"
       },
-      "name": "geb-keeper-flash-proxy",
+      "name": "h2o-keeper-flash-proxy",
       "repo": {
-        "name": "geb-keeper-flash-proxy-5b05bf9",
+        "name": "h2o-keeper-flash-proxy-52667f7",
         "ref": "HEAD",
-        "rev": "5b05bf9a036c3a52d7d5c5f8664d0c1fc03aeb6d",
-        "url": "git@github.com:reflexer-labs/geb-keeper-flash-proxy"
+        "rev": "52667f74c03f2ac3501ff306a568a4b86bd46976",
+        "url": "git@github.com:stablecoin-research/h2o-keeper-flash-proxy"
       }
     },
     "geb-lender-first-resort_faed45b": {
@@ -1135,7 +1135,7 @@
       "geb-deploy-pause-proxy-actions": "geb-deploy-pause-proxy-actions_3a4dc1b",
       "geb-fsm": "geb-fsm_ff83ea8",
       "geb-fsm-governance-interface": "geb-fsm-governance-interface_e673d8d",
-      "geb-keeper-flash-proxy": "geb-keeper-flash-proxy_5b05bf9",
+      "h2o-keeper-flash-proxy": "h2o-keeper-flash-proxy_52667f7",
       "geb-lender-first-resort": "geb-lender-first-resort_faed45b",
       "geb-pause-schedule-proxy-actions": "geb-pause-schedule-proxy-actions_369b546",
       "geb-pit": "geb-pit_0b779cc",
