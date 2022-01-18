@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+# Get config variables
+CONFIG_FILE="$OUT_DIR/config.json"
+# Get addresses
+loadAddresses
+
+log "SET ORACLE RELAYER PARAMS:"
+
+redemption_rate_upper_bound="$(readValue ".oracle_relayer.redemption_rate_upper_bound" "$CONFIG_FILE")"
+sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "redemptionRateUpperBound")")" "$redemption_rate_upper_bound"
+
+redemption_rate_lower_bound="$(readValue ".oracle_relayer.redemption_rate_lower_bound" "$CONFIG_FILE")"
+sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "redemptionRateLowerBound")")" "$redemption_rate_lower_bound"
+
+redemption_price="$(readValue ".oracle_relayer.redemption_price" "$CONFIG_FILE")"
+sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "redemptionPrice")")" "$redemption_price"
+
+redemption_rate="$(readValue ".oracle_relayer.redemption_rate" "$CONFIG_FILE")"
+rate_calldata="$(seth calldata "updateRedemptionRate(address,bytes32,uint256)" "$GEB_ORACLE_RELAYER" "$(seth --to-bytes32 "$(seth --from-ascii "redemptionRate")")" "$redemption_rate")"
+sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$GEB_GOV_ACTIONS" "$rate_calldata"
+# sethSend "$(eval echo "\$GEB_ORACLE_RELAYER")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "redemptionRate")")" "$redemption_rate"

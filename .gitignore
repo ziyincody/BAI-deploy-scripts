@@ -1,1 +1,17 @@
 /out
+/out-beta
+/out-sec
+/out-latest
+/out-new
+/out-newest
+/out-kovan
+/out-mumbai
+/out-mumbai-old
+/libexec/eee-setters
+
+node_modules
+
+secrets
+.env
+.pwd
+.sethrc

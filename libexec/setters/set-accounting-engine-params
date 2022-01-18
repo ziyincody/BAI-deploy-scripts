@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+# Get config variables
+CONFIG_FILE="$OUT_DIR/config.json"
+# Get addresses
+loadAddresses
+
+log "SET ACCOUNTING ENGINE PARAMS:"
+
+pop_debt_delay="$(readValue ".accounting_engine.pop_debt_delay" "$CONFIG_FILE")"
+surplus_auction_delay="$(readValue ".accounting_engine.surplus_auction_delay" "$CONFIG_FILE")"
+initial_debt_auction_minted_tokens="$(readValue ".accounting_engine.initial_debt_auction_minted_tokens" "$CONFIG_FILE")"
+debt_auction_bid_size="$(readValue ".accounting_engine.debt_auction_bid_size" "$CONFIG_FILE")"
+surplus_auction_amount_to_sell="$(readValue ".accounting_engine.surplus_auction_amount_to_sell" "$CONFIG_FILE")"
+surplus_buffer="$(readValue ".accounting_engine.surplus_buffer" "$CONFIG_FILE")"
+disable_cooldown="$(readValue ".accounting_engine.disable_cooldown" "$CONFIG_FILE")"
+
+
+sethSend "$(eval echo "\$GEB_ACCOUNTING_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "popDebtDelay")")" "$pop_debt_delay"
+sethSend "$(eval echo "\$GEB_ACCOUNTING_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "surplusAuctionDelay")")" "$surplus_auction_delay"
+sethSend "$(eval echo "\$GEB_ACCOUNTING_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "initialDebtAuctionMintedTokens")")" "$initial_debt_auction_minted_tokens"
+sethSend "$(eval echo "\$GEB_ACCOUNTING_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "debtAuctionBidSize")")" "$debt_auction_bid_size"
+sethSend "$(eval echo "\$GEB_ACCOUNTING_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "surplusAuctionAmountToSell")")" "$surplus_auction_amount_to_sell"
+sethSend "$(eval echo "\$GEB_ACCOUNTING_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "surplusBuffer")")" "$surplus_buffer"
+sethSend "$(eval echo "\$GEB_ACCOUNTING_ENGINE")" 'modifyParameters(bytes32,uint256)' "$(seth --to-bytes32 "$(seth --from-ascii "disableCooldown")")" "$disable_cooldown"
+

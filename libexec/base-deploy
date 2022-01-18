@@ -17,24 +17,23 @@
 
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
+#/nix/store/ff5d6f2wfmyiadhwy310kd2inb56a6az-H20-deploy-scripts-solidity-packages/dapp
+# sethSend "$(eval echo "\$VAL_${token}")" 'setBar(uint256)' "$(seth --to-uint256 3)"
+# contract=$(dappCreate ds-value DSValue)
+# eval "export VAL_${token}=${contract}"
+# logAddr "VAL_${token}" "$(eval "echo ${contract}")"
 
-# Deploy Multicall
-newChangelog=false
-# TODO: change the changelog logic  to store in local folder  as artifacts in JSON format , which we can then commit to the github .
-
-CHANGELOG=$(jq -r ".import.chainlog | values" "$CONFIG_FILE")
-if [[ -z "$CHANGELOG" ]]; then
-    CHANGELOG=$(dappCreate dss-chain-log-optimized ChainLog)
-    log "CHANGELOG=$CHANGELOG"
-    newChangelog=true
-else
-    copy dss-chain-log-optimized
-fi
-export CHANGELOG
+echo "$BIN_DIR/contracts/$lib/out"
+echo "$ETH_NONCE"
+eval "export UNISWAP_FACTORY=${contract}"
+eval "export UNISWAP_FACTORY=0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+eval "export UNISWAP_ROUTER=0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
 # Deploy  the oracle module and medianizer contract
-
 tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+# Deploy Multicall
+MULTICALL=$(dappCreate multicall Multicall)
+copy multicall
 
 for token in $tokens; do
     pipAddr=$(jq -r ".tokens.${token} | .import.pip | values" "$CONFIG_FILE")
@@ -59,436 +58,313 @@ for token in $tokens; do
         if [[ "${type}" == "value" ]]; then
             contract=$(dappCreate ds-value DSValue)
             eval "export VAL_${token}=${contract}"
-            logAddr "VAL_${token}" "$(eval "echo ${contract}")"
         fi
     else
         eval "export VAL_${token}=${pipAddr}"
         copy osm
-        copy testchain-medians
+        #copy testchain-medians
         logAddr "VAL_${token}" "$pipAddr"
     fi
     eval "export PIP_${token}=\$VAL_${token}"
 done
 
-# Deploy Multicall
-MULTICALL=$(dappCreate multicall Multicall)
-logAddr "MULTICALL" "$MULTICALL"
-
-# Deploy Token Faucet
-FAUCET=$(jq -r ".import.faucet | values" "$CONFIG_FILE")
-if [[ -z "$FAUCET" ]]; then
-    FAUCET=$(dappCreate token-faucet RestrictedTokenFaucet)
-    logAddr "FAUCET" "$FAUCET"
-    # Allow everyone to use the faucet
-    sethSend "$FAUCET" 'hope(address)' "0x0000000000000000000000000000000000000000"
-fi
 
 # Deploy ProxyRegistry
 PROXY_REGISTRY=$(jq -r ".import.proxyRegistry | values" "$CONFIG_FILE")
 if [[ -z "$PROXY_REGISTRY" ]]; then
     PROXY_FACTORY=$(dappCreate ds-proxy DSProxyFactory)
-    logAddr "PROXY_FACTORY" "$PROXY_FACTORY"
-    PROXY_REGISTRY=$(dappCreate proxy-registry ProxyRegistry "$PROXY_FACTORY")
-    logAddr "PROXY_REGISTRY" "$PROXY_REGISTRY"
+    PROXY_REGISTRY=$(dappCreate geb-proxy-registry GebProxyRegistry "$PROXY_FACTORY")
 else
     PROXY_FACTORY=$(seth storage "$PROXY_REGISTRY" 1)
     PROXY_FACTORY=0x${PROXY_FACTORY:26:66}
-    logAddr "PROXY_FACTORY" "$PROXY_FACTORY"
-    logAddr "PROXY_REGISTRY" "$PROXY_REGISTRY"
     copy ds-proxy
-    copy proxy-registry
+    copy geb-proxy-registry
 fi
 
-# Deploy Fabs
-"$LIBEXEC_DIR/dss/deploy-fab"
-# shellcheck source=/dev/null
-. "$OUT_DIR/load-fabs-addr-temp"
-rm "$OUT_DIR/load-fabs-addr-temp"
-
-# Set the pause delay to 0 in order to make the needed initial configurations
-export MCD_PAUSE_DELAY=0
-
-# Make sure there is not $MCD_ADM set, so a temporary roles is created as authority (to handle variables set up easier)
-unset MCD_ADM
-
-MCD_GOV=$(jq -r ".import.gov | values" "$CONFIG_FILE")
-if [[ -z "$MCD_GOV" ]]; then
-    # It means the GOV token will be created now in the next deployment script call, then we can send funds to the Faucet and set permissions to FLOP
-    newGovToken=true
-else
-    newGovToken=false
-    export MCD_GOV
-fi
-
-MCD_ESM_MIN="$(seth --to-uint256 "$(seth --to-wei "$(jq -r ".esm_min | values" "$CONFIG_FILE")" "eth")")"
-export MCD_ESM_MIN
-
-# Deploy MCD Core Contratcs
-"$LIBEXEC_DIR/dss/deploy-core"
-# shellcheck source=/dev/null
-. "$OUT_DIR/load-core-addr-temp"
-rm "$OUT_DIR/load-core-addr-temp"
-
-# Mint Gov Token, send to the Faucet and set permissions if a new token
-if [[ "$newGovToken" == true ]]; then
-    sethSend "$MCD_GOV" 'mint(address,uint256)' "$ETH_FROM" "$(seth --to-uint256 "$(seth --to-wei 1000000 ETH)")"
-    # sethSend "$FAUCET" 'gulp(address)' "$MCD_GOV"
-
-    # Use custom authority for the new GOV token
-    GOV_GUARD=$(dappCreate mkr-authority MkrAuthority)
-    logAddr "GOV_GUARD" "$GOV_GUARD"
-
-    # Set GOV_GUARD as authority of MCD_GOV
-    sethSend "$MCD_GOV" 'setAuthority(address)' "$GOV_GUARD"
-
-    # Set ownership to MCD_PAUSE_PROXY
-    sethSend "$MCD_GOV" 'setOwner(address)' "$MCD_PAUSE_PROXY"
-
-    # Allow Flop to mint Gov token
-    sethSend "$GOV_GUARD" 'rely(address)' "$MCD_FLOP"
-
-    # Set root to MCD_PAUSE_PROXY
-    sethSend "$GOV_GUARD" 'setRoot(address)' "$MCD_PAUSE_PROXY"
-fi
-
-# Deploy Collaterals
-"$LIBEXEC_DIR/dss/deploy-ilks"
-# shellcheck source=/dev/null
-. "$OUT_DIR/load-ilks-addr-temp"
-rm "$OUT_DIR/load-ilks-addr-temp"
-
-# Deploy Proxy Actions
-PROXY_ACTIONS=$(dappCreate dss-proxy-actions-optimized DssProxyActions)
-logAddr "PROXY_ACTIONS" "$PROXY_ACTIONS"
-PROXY_ACTIONS_END=$(dappCreate dss-proxy-actions-optimized DssProxyActionsEnd)
-logAddr "PROXY_ACTIONS_END" "$PROXY_ACTIONS_END"
-PROXY_ACTIONS_DSR=$(dappCreate dss-proxy-actions-optimized DssProxyActionsDsr)
-logAddr "PROXY_ACTIONS_DSR" "$PROXY_ACTIONS_DSR"
-
-# Deploy CdpManager
-CDP_MANAGER=$(dappCreate dss-cdp-manager DssCdpManager "$MCD_VAT")
-logAddr "CDP_MANAGER" "$CDP_MANAGER"
-GET_CDPS=$(dappCreate dss-cdp-manager GetCdps)
-logAddr "GET_CDPS" "$GET_CDPS"
-
-# Deploy DsrManager
-DSR_MANAGER=$(dappCreate dsr-manager DsrManager "$MCD_POT" "$MCD_JOIN_DAI")
-logAddr "DSR_MANAGER" "$DSR_MANAGER"
-
-# Deploy OsmMom
-OSM_MOM=$(dappCreate osm-mom OsmMom)
-logAddr "OSM_MOM" "$OSM_MOM"
-
-# Deploy FlipperMom
-FLIPPER_MOM=$(dappCreate flipper-mom FlipperMom "$MCD_CAT")
-logAddr "FLIPPER_MOM" "$FLIPPER_MOM"
-
-# Deploy ClipperMom
-CLIPPER_MOM=$(dappCreate clipper-mom-optimized ClipperMom "$MCD_SPOT")
-logAddr "CLIPPER_MOM" "$CLIPPER_MOM"
-
-# Deploy IlkRegistry
-ILK_REGISTRY=$(dappCreate ilk-registry-optimized IlkRegistry "$MCD_VAT" "$MCD_DOG" "$MCD_CAT" "$MCD_SPOT")
-logAddr "ILK_REGISTRY" "$ILK_REGISTRY"
-
-# As all initial collaterals were deployed, we can remove authority of the deployment contract from the core contracts
-sethSend "$MCD_DEPLOY" 'releaseAuth()'
-for token in $tokens; do
-    ilks=$(jq -r ".tokens.${token}.ilks | keys_unsorted[]" "$CONFIG_FILE")
-    for ilk in $ilks; do
-        # Rely Pause Proxy contract to access the Adapter
-        sethSend "$(eval echo "\$MCD_JOIN_${token}_${ilk}")" 'rely(address)' "$MCD_PAUSE_PROXY"
-        # Deny deployer to access the Adapter
-        sethSend "$(eval echo "\$MCD_JOIN_${token}_${ilk}")" 'deny(address)' "$ETH_FROM"
-
-        flipDeploy="$(jq ".tokens.${token}.ilks.${ilk} | .flipDeploy!=null" "$CONFIG_FILE")"
-        if [[ "$flipDeploy" == true ]]; then
-            sethSend "$MCD_DEPLOY" 'releaseAuthFlip(bytes32)' "$(seth --to-bytes32 "$(seth --from-ascii "${token}-${ilk}")")"
-        else
-            sethSend "$MCD_DEPLOY" 'releaseAuthClip(bytes32)' "$(seth --to-bytes32 "$(seth --from-ascii "${token}-${ilk}")")"
-        fi
-    done
-done
-
-# Deploy GovActions - Library functions for the Pause
-MCD_GOV_ACTIONS=$(dappCreate dss-deploy-1_2 GovActions)
-logAddr "MCD_GOV_ACTIONS" "$MCD_GOV_ACTIONS"
-
-# Deploy Pause Proxy Actions (support contract for executing initial set up of the dss system)
-PROXY_PAUSE_ACTIONS=$(dappCreate dss-deploy-pause-proxy-actions DssDeployPauseProxyActions)
-logAddr "PROXY_PAUSE_ACTIONS" "$PROXY_PAUSE_ACTIONS"
 
 # Get a proxy for the deployer address (create if didn't previously exist)
 PROXY_DEPLOYER=$(seth call "$PROXY_REGISTRY" 'proxies(address)(address)' "$ETH_FROM")
 if [[ "$PROXY_DEPLOYER" == "0x0000000000000000000000000000000000000000" ]]; then
     sethSend "$PROXY_REGISTRY" 'build()'
     PROXY_DEPLOYER="$(seth call "$PROXY_REGISTRY" 'proxies(address)(address)' "$ETH_FROM")"
-    log "PROXY_DEPLOYER=$PROXY_DEPLOYER"
 fi
 
-# Set the proxy address as root of the roles (in order to be able to do all the variables set up)
-sethSend "$MCD_ADM" 'setRootUser(address,bool)' "$PROXY_DEPLOYER" true
 
-# Deploy chief as new $MCD_ADM if there isn't an authority in the config file
-MCD_ADM=$(jq -r ".import.authority | values" "$CONFIG_FILE")
-if [[ -z "$MCD_ADM" ]]; then
-    MCD_IOU=$(dappCreate ds-token DSToken '"IOU"')
-    logAddr "MCD_IOU" "$MCD_IOU"
+WETH="0xd0a1e359811322d97991e03f863a0c30c2cf029c" # "$(dappCreate h20-deploy WETH9_)" #"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" # kovan -
+sethSend "$WETH" --value 500000000000000000
 
-    MCD_ADM=$(dappCreate ds-chief DSChief "$MCD_GOV" "$MCD_IOU" 5)
-    logAddr "MCD_ADM" "$MCD_ADM"
-    sethSend "$MCD_IOU" 'setOwner(address)' "${MCD_ADM}"
-
-    # Deploy Vote Proxy Factory
-    VOTE_PROXY_FACTORY=$(dappCreate vote-proxy VoteProxyFactory "$MCD_ADM")
-    logAddr "VOTE_PROXY_FACTORY" "$VOTE_PROXY_FACTORY"
-
-    # Deploy PollingEmitter
-    MCD_POLLING_EMITTER=$(dappCreate symbolic-voting PollingEmitter)
-    logAddr "MCD_POLLING_EMITTER" "$MCD_POLLING_EMITTER"
-
-    # Deploy Vote Delegate Factory
-    VOTE_DELEGATE_PROXY_FACTORY=$(dappCreate vote-delegate-optimized VoteDelegateFactory "$MCD_ADM" "$MCD_POLLING_EMITTER")
-    logAddr "VOTE_DELEGATE_PROXY_FACTORY" "$VOTE_DELEGATE_PROXY_FACTORY"
+# create multisig
+GEB_MULTISIG=$(jq -r ".import.multisig | values" "$CONFIG_FILE")
+if [[ -z "$GEB_PROT" ]]; then
+    GEB_MULTISIG="$(dappCreate geb-basic-multisig MultiSigWallet "[$ETH_FROM]" "1")"
 else
-    logAddr "MCD_IOU" "$(seth call "$MCD_ADM" "IOU()(address)")"
-    logAddr "MCD_ADM" "$MCD_ADM"
-    copy ds-chief
-    copy vote-proxy
-    copy symbolic-voting
-    copy vote-delegate-optimized
+    export GEB_MULTISIG
+fi
+GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
+#GEB_MULTISIG_PROXY="$(sethSend "$PROXY_REGISTRY" "build(address)" "$GEB_MULTISIG")"
+
+
+# ================== Peripherials ===========================
+
+# deploy TokenBurner
+GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
+
+GEB_POLLING_EMITTER="$(dappCreate geb-polling-emitter GebPollingEmitter)"
+GEB_GOV_ACTIONS="$(dappCreate h20-deploy GovActions)"
+GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
+
+PROXY_ACTIONS="$(dappCreate geb-proxy-actions GebProxyActions)"
+PROXY_ACTIONS_INCENTIVES="$(dappCreate geb-proxy-actions GebProxyIncentivesActions)"
+PROXY_ACTIONS_GLOBAL_SETTLEMENT="$(dappCreate geb-proxy-actions GebProxyActionsGlobalSettlement)"
+PROXY_DEBT_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxyDebtAuctionActions)"
+PROXY_SURPLUS_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxySurplusAuctionActions)"
+PROXY_SAVIOUR_ACTIONS="$(dappCreate geb-proxy-actions GebProxySaviourActions)"
+PROXY_PAUSE_SCHEDULE_ACTIONS="$(dappCreate geb-pause-schedule-proxy-actions GebPauseScheduleProxyActions)"
+PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseProxyActions)"
+
+
+# Deploy Fabs
+"$LIBEXEC_DIR/H2O-core/deploy-fab"
+# shellcheck source=/dev/null
+. "$OUT_DIR/load-fabs-addr-temp"
+rm "$OUT_DIR/load-fabs-addr-temp"
+
+
+GEB_PROT=$(jq -r ".import.gov | values" "$CONFIG_FILE")
+if [[ -z "$GEB_PROT" ]]; then
+    # It means the GOV token will be created now in the next deployment script call, then we can send funds to the Faucet and set permissions to FLOP
+    newGovToken=true
+else
+    newGovToken=false
+    export GEB_PROT
 fi
 
-for token in $tokens; do
-    ILKS_VARS+=",
-    \"${token}\": \"$(seth --to-checksum-address "$(eval echo "\$${token}")")\""
-    if [[ "$(eval echo "\$VAL_${token}")" != "" ]]; then
-    ILKS_VARS+=",
-    \"VAL_${token}\": \"$(seth --to-checksum-address "$(eval echo "\$VAL_${token}")")\""
-    fi
-    ILKS_VARS+=",
-    \"PIP_${token}\": \"$(seth --to-checksum-address "$(eval echo "\$PIP_${token}")")\""
-    ilks=$(jq -r ".tokens.${token}.ilks | keys_unsorted[]" "$CONFIG_FILE")
-    for ilk in $ilks; do
-    ILKS_VARS+=",
-    \"MCD_JOIN_${token}_${ilk}\": \"$(eval echo "\$MCD_JOIN_${token}_${ilk}")\""
-
-    flipDeploy="$(jq ".tokens.${token}.ilks.${ilk} | .flipDeploy!=null" "$CONFIG_FILE")"
-    if [[ "$flipDeploy" == true ]]; then
-    ILKS_VARS+=",
-    \"MCD_FLIP_${token}_${ilk}\": \"$(seth --to-checksum-address "$(eval echo "\$MCD_FLIP_${token}_${ilk}")")\""
-    else
-    ILKS_VARS+=",
-    \"MCD_CLIP_${token}_${ilk}\": \"$(seth --to-checksum-address "$(eval echo "\$MCD_CLIP_${token}_${ilk}")")\""
-    ILKS_VARS+=",
-    \"MCD_CLIP_CALC_${token}_${ilk}\": \"$(seth --to-checksum-address "$(eval echo "\$MCD_CLIP_CALC_${token}_${ilk}")")\""
-    fi
-    done
-done
-
-if [[ -n $GOV_GUARD ]]; then
-    GOV_GUARD_VAR=",
-    \"GOV_GUARD\": \"$GOV_GUARD\""
-fi
-if [[ -n $MCD_IOU ]]; then
-    MCD_IOU_VAR=",
-    \"MCD_IOU\": \"$MCD_IOU\""
-fi
-if [[ -n $VOTE_PROXY_FACTORY ]]; then
-    VOTE_PROXY_FACTORY_VAR=",
-    \"VOTE_PROXY_FACTORY\": \"$VOTE_PROXY_FACTORY\""
+# If no Governance token is defined, create one
+if [ -z "$GEB_PROT" ]
+then
+    GEB_PROT="$(dappCreate ds-token DSToken '"AQA"' '"AQA"')"
 fi
 
-if [[ -n $VOTE_DELEGATE_PROXY_FACTORY ]]; then
-    VOTE_DELEGATE_PROXY_FACTORY_VAR=",
-    \"VOTE_DELEGATE_PROXY_FACTORY\": \"$VOTE_DELEGATE_PROXY_FACTORY\""
-fi
-
-# Deploy DssAutoLine
-MCD_IAM_AUTO_LINE=$(dappCreate dss-auto-line-optimized DssAutoLine "$MCD_VAT")
-logAddr "MCD_IAM_AUTO_LINE" "$MCD_IAM_AUTO_LINE"
-# Rely DssAutoLine in the Vat
-calldata="$(seth calldata 'rely(address,address,address,address)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_VAT" "$MCD_IAM_AUTO_LINE")"
-sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
-
-# Deploy DssFlash
-MCD_FLASH=$(dappCreate dss-flash DssFlash "$MCD_JOIN_DAI" "$MCD_VOW")
-logAddr "MCD_FLASH" "$MCD_FLASH"
-# Rely DssFlash in the Vat
-set -e
-calldata="$(seth calldata 'rely(address,address,address,address)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_VAT" "$MCD_FLASH")"
-sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
-# Rely PauseProxy in DssFlash and deny deployer
-sethSend "$MCD_FLASH" 'rely(address)' "$MCD_PAUSE_PROXY"
-sethSend "$MCD_FLASH" 'deny(address)' "$ETH_FROM"
-
-# Deploy both DssVest
-MCD_VEST_DAI=$(dappCreate dss-vest-optimized DssVestSuckable "$CHANGELOG")
-logAddr "MCD_VEST_DAI" "$MCD_VEST_DAI"
-sethSend "$MCD_VEST_DAI" 'rely(address)' "$MCD_PAUSE_PROXY"
-sethSend "$MCD_VEST_DAI" 'deny(address)' "$ETH_FROM"
-calldata="$(seth calldata 'rely(address,address,address,address)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$MCD_VAT" "$MCD_VEST_DAI")"
-sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
-MCD_VEST_MKR=$(dappCreate dss-vest-optimized DssVestMintable "$MCD_GOV")
-logAddr "MCD_VEST_MKR" "$MCD_VEST_MKR"
-sethSend "$MCD_VEST_MKR" 'rely(address)' "$MCD_PAUSE_PROXY"
-sethSend "$MCD_VEST_MKR" 'deny(address)' "$ETH_FROM"
+# Mint Gov Token, send to the Faucet and set permissions if a new token
 if [[ "$newGovToken" == true ]]; then
-    calldata="$(seth calldata 'rely(address,address,address,address)' "$MCD_PAUSE" "$MCD_GOV_ACTIONS" "$GOV_GUARD" "$MCD_VEST_MKR")"
-    sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$PROXY_PAUSE_ACTIONS" "$calldata"
+    sethSend "$GEB_PROT" 'mint(address,uint256)' "$ETH_FROM" "$(seth --to-uint256 "$(seth --to-wei 1000000 ETH)")"
+    # sethSend "$FAUCET" 'gulp(address)' "$MCD_GOV"
+
+    # # Use custom authority for the new GOV token
+    # GOV_GUARD=$(dappCreate mkr-authority MkrAuthority)
+
+    # # Set GOV_GUARD as authority of MCD_GOV
+    # sethSend "$GEB_GOV" 'setAuthority(address)' "$GOV_GUARD"
+
+    # # Set ownership to MCD_PAUSE_PROXY
+    # sethSend "$GEB_GOV" 'setOwner(address)' "$MCD_PAUSE_PROXY"
+
+    # # Allow Flop to mint Gov token
+    # sethSend "$GOV_GUARD" 'rely(address)' "$MCD_FLOP"
+
+    # # Set root to MCD_PAUSE_PROXY
+    # sethSend "$GOV_GUARD" 'setRoot(address)' "$MCD_PAUSE_PROXY"
 fi
+
+
+# ================== Core ===========================
+
+
+sethSend "$GEB_PROT" 'mint(uint256)' "100000000000000000000"
+
+GEB_DEPLOY=$(dappCreate h20-deploy GebDeploy)
+
+GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
+sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_DEPLOY" true
+
+sethSend "$GEB_DEPLOY" "setFirstFactoryBatch(address,address,address,address,address,address,address)" "$SAFEENGINE_FAB" "$TAXCOLLECTOR_FAB" "$ACCOUNTINGENGINE_FAB" "$LIQUIDATIONENGINE_FAB" "$COIN_FAB" "$COINJOIN_FAB" "$COINSAVINGSACCOUNT_FAB"
+sethSend "$GEB_DEPLOY" "setSecondFactoryBatch(address,address,address,address,address,address,address,address,address)" "$RECYCLINGSURPLUSAUCTIONHOUSE_FAB" "$BURNINGSURPLUSAUCTIONHOUSE_FAB" "$DEBTAUCTIONHOUSE_FAB" "$ENGLISHCOLLATERALAUCTIONHOUSE_FAB" "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB" "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB" "$ORACLERELAYER_FAB" "$GLOBALSETTLEMENT_FAB" "$ESM_FAB"
+sethSend "$GEB_DEPLOY" "setThirdFactoryBatch(address,address,address)" "$PAUSE_FAB" "$PROTESTPAUSE_FAB" "$STABILITYFEETREASURY_FAB"
+
+sethSend "$GEB_DEPLOY" 'deploySAFEEngine()'
+# Remove kovan chain id
+sethSend "$GEB_DEPLOY" 'deployCoin(string, string, uint256)' '"H2O Index"' '"H2O"' "42" 
+sethSend "$GEB_DEPLOY" 'deployTaxation()'
+sethSend "$GEB_DEPLOY" 'deployAuctions(address, address, bytes32)' "$GEB_PROT" "$ETH_FROM" "$(seth --to-bytes32 "$(seth --from-ascii "recycling")")"
+sethSend "$GEB_DEPLOY" 'deployAccountingEngine()'
+sethSend "$GEB_DEPLOY" 'deployStabilityFeeTreasury()'
+sethSend "$GEB_DEPLOY" 'deployLiquidator()'
+sethSend "$GEB_DEPLOY" 'deployShutdown(address, address, address, uint256)' "$GEB_PROT" "0x0000000000000000000000000000000000000000" "0x0000000000000000000000000000000000000000" "10"
+
+sethSend "$GEB_DEPLOY" 'deployPause(uint256, address)' "0" "$GEB_PAUSE_AUTHORITY"
+
+eval "export VAL_DEPLOY=${contract}"
+
+
+GEB_SAFE_ENGINE="$(seth call "$GEB_DEPLOY" "safeEngine()(address)")"
+GEB_TAX_COLLECTOR="$(seth call "$GEB_DEPLOY" "taxCollector()(address)")"
+GEB_ACCOUNTING_ENGINE="$(seth call "$GEB_DEPLOY" "accountingEngine()(address)")"
+GEB_LIQUIDATION_ENGINE="$(seth call "$GEB_DEPLOY" "liquidationEngine()(address)")"
+GEB_STABILITY_FEE_TREASURY="$(seth call "$GEB_DEPLOY" "stabilityFeeTreasury()(address)")"
+GEB_COIN="$(seth call "$GEB_DEPLOY" "coin()(address)")"
+GEB_COIN_JOIN="$(seth call "$GEB_DEPLOY" "coinJoin()(address)")"
+GEB_RECYCLING_SURPLUS_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "recyclingSurplusAuctionHouse()(address)")"
+GEB_BURNING_SURPLUS_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "burningSurplusAuctionHouse()(address)")"
+GEB_DEBT_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "debtAuctionHouse()(address)")"
+GEB_ORACLE_RELAYER="$(seth call "$GEB_DEPLOY" "oracleRelayer()(address)")"
+GEB_COIN_SAVINGS_ACCOUNT="$(seth call "$GEB_DEPLOY" "coinSavingsAccount()(address)")"
+GEB_GLOBAL_SETTLEMENT="$(seth call "$GEB_DEPLOY" "globalSettlement()(address)")"
+GEB_ESM="$(seth call "$GEB_DEPLOY" "esm()(address)")"
+GEB_PAUSE="$(seth call "$GEB_DEPLOY" "pause()(address)")"
+GEB_PROTEST_PAUSE="$(seth call "$GEB_DEPLOY" "protestPause()(address)")"
+
+FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface)"
+
+
+sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_MULTISIG" true
+sethSend "$GEB_DEPLOY" 'giveControl(address)' "$GEB_PAUSE"
+
+sethSend "$GEB_DEPLOY" 'giveControl(address)' "$ETH_FROM"
+
+
+cat > "$OUT_DIR/load-core-addr-temp" <<EOF
+#!/bin/bash
+export GEB_PROT=$GEB_PROT
+export GEB_SAFE_ENGINE=$GEB_SAFE_ENGINE
+export GEB_TAX_COLLECTOR=$GEB_TAX_COLLECTOR
+export GEB_ACCOUNTING_ENGINE=$GEB_ACCOUNTING_ENGINE
+export GEB_LIQUIDATION_ENGINE=$GEB_LIQUIDATION_ENGINE
+export GEB_STABILITY_FEE_TREASURY=$GEB_STABILITY_FEE_TREASURY
+export GEB_COIN=$GEB_COIN
+export GEB_COIN_JOIN=$GEB_COIN_JOIN
+export GEB_RECYCLING_SURPLUS_AUCTION_HOUSE=$GEB_RECYCLING_SURPLUS_AUCTION_HOUSE
+export GEB_BURNING_SURPLUS_AUCTION_HOUSE=$GEB_BURNING_SURPLUS_AUCTION_HOUSE
+export GEB_DEBT_AUCTION_HOUSE=$GEB_DEBT_AUCTION_HOUSE
+export GEB_ORACLE_RELAYER=$GEB_ORACLE_RELAYER
+export GEB_COIN_SAVINGS_ACCOUNT=$GEB_COIN_SAVINGS_ACCOUNT
+export GEB_GLOBAL_SETTLEMENT=$GEB_GLOBAL_SETTLEMENT
+export GEB_ESM=$GEB_ESM
+export GEB_PAUSE=$GEB_PAUSE
+export GEB_PROTEST_PAUSE=$GEB_PROTEST_PAUSE
+export GEB_GOV_ACTIONS=$GEB_GOV_ACTIONS
+export PROXY_DEPLOYER=$PROXY_DEPLOYER
+export FSM_GOV_INTERFACE=$FSM_GOV_INTERFACE
+EOF
+
+
+
+# ================== Peripherials ===========================
+
+sethSend "$GEB_DEPLOY" 'giveControl(address)' "$PROXY_DEPLOYER"
+
+GEB_SAFE_MANAGER="$(dappCreate geb-safe-manager GebSafeManager "$GEB_SAFE_ENGINE")"
+GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
+
+sethSend "$FSM_GOV_INTERFACE" 'setOwner(address)' "$PROXY_DEPLOYER"
+
+"$LIBEXEC_DIR"/H2O-core/deploy-coin-oracle
+
+"$LIBEXEC_DIR"/H2O-core/deploy-rate-setter
+
+"$LIBEXEC_DIR"/H2O-core/deploy-ceiling-setter
+
+"$LIBEXEC_DIR"/H2O-core/deploy-auction-throttler
+
+"$LIBEXEC_DIR"/H2O-core/deploy-keeper-flash-proxy
+
+"$LIBEXEC_DIR"/H2O-core/deploy-proto-auth
+
+# saveCooldown
+SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
+
+GEB_REDEMPTION_PRICE_SNAP=$(dappCreate geb-redemption-price-snap RedemptionPriceSnap "$GEB_ORACLE_RELAYER")
 
 # Generate addresses.json file
 # shellcheck disable=SC2153
 cat > "$OUT_DIR"/addresses.json <<EOF
 {
-    "DEPLOYER": "$(seth --to-checksum-address "$ETH_FROM")",
-    "CHANGELOG": "$CHANGELOG",
-    "MULTICALL": "$MULTICALL",
-    "FAUCET": "$(seth --to-checksum-address "$FAUCET")",
-    "MCD_DEPLOY": "$MCD_DEPLOY",
-    "FLIP_FAB": "$FLIP_FAB",
-    "CLIP_FAB": "$CLIP_FAB",
-    "CALC_FAB": "$CALC_FAB",
-    "MCD_GOV": "$(seth --to-checksum-address "$MCD_GOV")"$GOV_GUARD_VAR$MCD_IOU_VAR,
-    "MCD_ADM": "$(seth --to-checksum-address "$MCD_ADM")"$VOTE_PROXY_FACTORY_VAR$VOTE_DELEGATE_PROXY_FACTORY_VAR,
-    "MCD_VAT": "$(seth --to-checksum-address "$MCD_VAT")",
-    "MCD_JUG": "$(seth --to-checksum-address "$MCD_JUG")",
-    "MCD_CAT": "$(seth --to-checksum-address "$MCD_CAT")",
-    "MCD_DOG": "$(seth --to-checksum-address "$MCD_DOG")",
-    "MCD_VOW": "$(seth --to-checksum-address "$MCD_VOW")",
-    "MCD_JOIN_DAI": "$(seth --to-checksum-address "$MCD_JOIN_DAI")",
-    "MCD_FLAP": "$(seth --to-checksum-address "$MCD_FLAP")",
-    "MCD_FLOP": "$(seth --to-checksum-address "$MCD_FLOP")",
-    "MCD_PAUSE": "$(seth --to-checksum-address "$MCD_PAUSE")",
-    "MCD_PAUSE_PROXY": "$(seth --to-checksum-address "$MCD_PAUSE_PROXY")",
-    "MCD_GOV_ACTIONS": "$MCD_GOV_ACTIONS",
-    "MCD_DAI": "$(seth --to-checksum-address "$MCD_DAI")",
-    "MCD_SPOT": "$(seth --to-checksum-address "$MCD_SPOT")",
-    "MCD_POT": "$(seth --to-checksum-address "$MCD_POT")",
-    "MCD_END": "$(seth --to-checksum-address "$MCD_END")",
-    "MCD_ESM": "$(seth --to-checksum-address "$MCD_ESM")",
-    "PROXY_ACTIONS": "$PROXY_ACTIONS",
-    "PROXY_ACTIONS_END": "$PROXY_ACTIONS_END",
-    "PROXY_ACTIONS_DSR": "$PROXY_ACTIONS_DSR",
-    "CDP_MANAGER": "$CDP_MANAGER",
-    "DSR_MANAGER": "$DSR_MANAGER",
-    "GET_CDPS": "$GET_CDPS",
-    "ILK_REGISTRY": "$ILK_REGISTRY",
-    "OSM_MOM": "$OSM_MOM",
-    "FLIPPER_MOM": "$FLIPPER_MOM",
-    "CLIPPER_MOM": "$CLIPPER_MOM",
-    "MCD_IAM_AUTO_LINE": "$MCD_IAM_AUTO_LINE",
-    "MCD_FLASH": "$MCD_FLASH",
-    "MCD_VEST_DAI": "$MCD_VEST_DAI",
-    "MCD_VEST_MKR": "$MCD_VEST_MKR",
+    "GEB_PROT": "$(seth --to-checksum-address "$GEB_PROT")",
+    "ETH": "$(seth --to-checksum-address "$WETH")",
+    "GEB_SAFE_ENGINE": "$(seth --to-checksum-address "$GEB_SAFE_ENGINE")",
+    "GEB_TAX_COLLECTOR": "$(seth --to-checksum-address "$GEB_TAX_COLLECTOR")",
+    "GEB_ACCOUNTING_ENGINE": "$(seth --to-checksum-address "$GEB_ACCOUNTING_ENGINE")",
+    "GEB_LIQUIDATION_ENGINE": "$(seth --to-checksum-address "$GEB_LIQUIDATION_ENGINE")",
+    "GEB_STABILITY_FEE_TREASURY": "$(seth --to-checksum-address "$GEB_STABILITY_FEE_TREASURY")",
+    "GEB_COIN": "$(seth --to-checksum-address "$GEB_COIN")",
+    "GEB_COIN_JOIN": "$(seth --to-checksum-address "$GEB_COIN_JOIN")",
+    "GEB_DEBT_AUCTION_HOUSE": "$(seth --to-checksum-address "$GEB_DEBT_AUCTION_HOUSE")",
+    "GEB_ORACLE_RELAYER": "$(seth --to-checksum-address "$GEB_ORACLE_RELAYER")",
+    "GEB_GLOBAL_SETTLEMENT": "$(seth --to-checksum-address "$GEB_GLOBAL_SETTLEMENT")",
+    "GEB_ESM": "$(seth --to-checksum-address "$GEB_ESM")",
+    "GEB_PAUSE": "$(seth --to-checksum-address "$GEB_PAUSE")",
+    "PROXY_REGISTRY": "$(seth --to-checksum-address "$PROXY_REGISTRY")",
     "PROXY_FACTORY": "$(seth --to-checksum-address "$PROXY_FACTORY")",
-    "PROXY_REGISTRY": "$(seth --to-checksum-address "$PROXY_REGISTRY")"$ILKS_VARS,
-    "PROXY_PAUSE_ACTIONS": "$PROXY_PAUSE_ACTIONS",
-    "PROXY_DEPLOYER": "$(seth --to-checksum-address "$PROXY_DEPLOYER")"
+    "PROXY_DEPLOYER": "$(seth --to-checksum-address "$PROXY_DEPLOYER")",
+    "MULTICALL": "$(seth --to-checksum-address "$MULTICALL")",
+    "GEB_DEPLOY": "$(seth --to-checksum-address "$GEB_DEPLOY")",
+    "GEB_MULTISIG": "$(seth --to-checksum-address "$GEB_MULTISIG")",
+    "GEB_POLLING_EMITTER": "$(seth --to-checksum-address "$GEB_POLLING_EMITTER")",
+    "GEB_GOV_ACTIONS": "$(seth --to-checksum-address "$GEB_GOV_ACTIONS")",
+    "GEB_ESM_TOKEN_BURNER": "$(seth --to-checksum-address "$GEB_ESM_TOKEN_BURNER")",
+    "PROXY_ACTIONS": "$(seth --to-checksum-address "$PROXY_ACTIONS")",
+    "PROXY_ACTIONS_INCENTIVES": "$(seth --to-checksum-address "$PROXY_ACTIONS_INCENTIVES")",
+    "PROXY_ACTIONS_GLOBAL_SETTLEMENT": "$(seth --to-checksum-address "$PROXY_ACTIONS_GLOBAL_SETTLEMENT")",
+    "PROXY_DEBT_AUCTION_ACTIONS": "$(seth --to-checksum-address "$PROXY_DEBT_AUCTION_ACTIONS")",
+    "PROXY_SURPLUS_AUCTION_ACTIONS": "$(seth --to-checksum-address "$PROXY_SURPLUS_AUCTION_ACTIONS")",
+    "PROXY_SAVIOUR_ACTIONS": "$(seth --to-checksum-address "$PROXY_SAVIOUR_ACTIONS")",
+    "SAFE_MANAGER": "$(seth --to-checksum-address "$GEB_SAFE_MANAGER")",
+    "GET_SAFES": "$(seth --to-checksum-address "$GET_SAFES")",
+    "PROXY_PAUSE_SCHEDULE_ACTIONS": "$(seth --to-checksum-address "$PROXY_PAUSE_SCHEDULE_ACTIONS")",
+    "PROXY_PAUSE_ACTIONS": "$(seth --to-checksum-address "$PROXY_PAUSE_ACTIONS")",
+    "FSM_GOV_INTERFACE": "$(seth --to-checksum-address "$FSM_GOV_INTERFACE")",
+    "SAFE_SAVIOUR_REGISTRY": "$(seth --to-checksum-address "$SAFE_SAVIOUR_REGISTRY")",
+    "GEB_PROTEST_PAUSE": "$(seth --to-checksum-address "$GEB_PROTEST_PAUSE")",
+    "GEB_COIN_SAVINGS_ACCOUNT": "$(seth --to-checksum-address "$GEB_COIN_SAVINGS_ACCOUNT")",
+    "GEB_BURNING_SURPLUS_AUCTION_HOUSE": "$(seth --to-checksum-address "$GEB_BURNING_SURPLUS_AUCTION_HOUSE")",
+    "GEB_RECYCLING_SURPLUS_AUCTION_HOUSE": "$(seth --to-checksum-address "$GEB_RECYCLING_SURPLUS_AUCTION_HOUSE")",
+    "GEB_REDEMPTION_PRICE_SNAP": "$(seth --to-checksum-address "$GEB_REDEMPTION_PRICE_SNAP")"
 }
 EOF
 
-"$LIBEXEC_DIR"/setters/set-vat-line
+# ================== Core ===========================
 
-"$LIBEXEC_DIR"/setters/set-vow-wait
+"$LIBEXEC_DIR"/setters/set-oracle-relayer-params
 
-"$LIBEXEC_DIR"/setters/set-vow-bump
+"$LIBEXEC_DIR"/setters/set-safe-engine-params
 
-"$LIBEXEC_DIR"/setters/set-vow-dump
+"$LIBEXEC_DIR"/setters/set-accounting-engine-params
 
-"$LIBEXEC_DIR"/setters/set-vow-sump
+"$LIBEXEC_DIR"/H2O-core/deploy-collaterals
 
-"$LIBEXEC_DIR"/setters/set-vow-hump
+"$LIBEXEC_DIR"/setters/set-collateral-auction-params
 
-"$LIBEXEC_DIR"/setters/set-cat-box
+"$LIBEXEC_DIR"/setters/set-collateral-tax-collector-params
 
-"$LIBEXEC_DIR"/setters/set-dog-hole
+"$LIBEXEC_DIR"/setters/set-collateral-safe-engine-params
 
-"$LIBEXEC_DIR"/setters/set-jug-base
+"$LIBEXEC_DIR"/setters/set-collateral-liquidation-engine-params
 
-"$LIBEXEC_DIR"/setters/set-pot-dsr
+"$LIBEXEC_DIR"/setters/set-collateral-oracle-relayer-params
 
-"$LIBEXEC_DIR"/setters/set-end-wait
+"$LIBEXEC_DIR"/H2O-core/deploy-staking
 
-"$LIBEXEC_DIR"/setters/set-beg "flap"
+sethSend "$GEB_DEPLOY" 'takeControl(address)' "$ETH_FROM"
 
-"$LIBEXEC_DIR"/setters/set-ttl "flap"
 
-"$LIBEXEC_DIR"/setters/set-tau "flap"
 
-"$LIBEXEC_DIR"/setters/set-beg "flop"
+########### POST DEPLOYMENT ACTIONS
 
-"$LIBEXEC_DIR"/setters/set-flop-pad
+# Collateral OSM delay interval
+# CALLDATA_OUTPUT=$(seth calldata  "changeDelay(address, uint16)" FSM_ADDRESS 1)
+# ETH_GAS=5000000 seth send $PROXY_DEPLOYER "execute(address,bytes)" 0x65dfbbb756c1fa643c1dd6706ad9667e59bfa776 \
+#    $CALLDATA_OUTPUT
 
-"$LIBEXEC_DIR"/setters/set-ttl "flop"
+# Rate setter update delay
+# seth send $GEB_RRFM_SETTER "modifyParameters(bytes32,uint256)"   "$(seth --to-bytes32 $(seth --from-ascii  'updateRateDelay'))" 1
+# seth send $GEB_RRFM_CALCULATOR "modifyParameters(bytes32,uint256)"   "$(seth --to-bytes32 $(seth --from-ascii ps))" 60
 
-"$LIBEXEC_DIR"/setters/set-tau "flop"
+# To set lastReadRedemptionPrice on FixedDiscount Collateral House (only after first auction is created):
+# Unless this is set, auction keeper won't be able to bid on auction
+# seth send <COLLATERAL_AUCTION_HOUSE> "getCollateralBought(uint256,uint256)" 1 1000000000000000000000
 
-"$LIBEXEC_DIR"/setters/set-flash-max
+# Create AQA / MATIC pool for staking rewards
 
-"$LIBEXEC_DIR"/setters/set-flash-toll
+# Update last read redemption price in collateral auction house
+# seth send 0xe77692873473102047f108CEFdF2A62432f781ff "getCollateralBought(uint256,uint256)" 1 10000000000000000000000000000
 
-"$LIBEXEC_DIR"/setters/set-ilks-price
-
-"$LIBEXEC_DIR"/setters/set-ilks-pip-whitelist
-
-"$LIBEXEC_DIR"/setters/set-ilks-mat
-
-"$LIBEXEC_DIR"/setters/set-ilks-line
-
-"$LIBEXEC_DIR"/setters/set-ilks-dust
-
-"$LIBEXEC_DIR"/setters/set-ilks-duty
-
-"$LIBEXEC_DIR"/setters/set-ilks-spotter-poke
-
-# set-ilks-chop calls upchost so needs to be done after setting dust:
-"$LIBEXEC_DIR"/setters/set-ilks-chop
-
-"$LIBEXEC_DIR"/setters/set-ilks-dunk
-
-"$LIBEXEC_DIR"/setters/set-ilks-beg
-
-"$LIBEXEC_DIR"/setters/set-ilks-ttl
-
-"$LIBEXEC_DIR"/setters/set-ilks-tau
-
-"$LIBEXEC_DIR"/setters/set-ilks-hole
-
-"$LIBEXEC_DIR"/setters/set-ilks-chip
-
-"$LIBEXEC_DIR"/setters/set-ilks-tip
-
-"$LIBEXEC_DIR"/setters/set-ilks-buf
-
-"$LIBEXEC_DIR"/setters/set-ilks-tail
-
-"$LIBEXEC_DIR"/setters/set-ilks-cusp
-
-"$LIBEXEC_DIR"/setters/set-ilks-calc-params
-
-"$LIBEXEC_DIR"/setters/set-ilks-faucet
-
-if [[ -f "$CASE" ]]; then
-    "$CASE"
-fi
-
-"$LIBEXEC_DIR"/setters/set-ilks-osm
-
-"$LIBEXEC_DIR"/setters/set-ilks-osm-mom
-
-"$LIBEXEC_DIR"/setters/set-ilks-flipper-mom
-
-"$LIBEXEC_DIR"/setters/set-ilks-clipper-mom
-
-"$LIBEXEC_DIR"/setters/set-pips-rights
-
-"$LIBEXEC_DIR"/setters/set-ilks-registry
-
-"$LIBEXEC_DIR"/setters/set-pause-auth-delay
-
-if [[ "$newChangelog" == true ]]; then
-    sethSend "$CHANGELOG" 'rely(address)' "$MCD_PAUSE_PROXY"
-    sethSend "$CHANGELOG" 'deny(address)' "$ETH_FROM"
-fi
+# Ensure OCEAN/H2O uni V2 pool was created

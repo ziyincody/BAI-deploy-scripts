@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+. "$OUT_DIR/load-core-addr-temp"
+
+PROTOCOL_TOKEN_AUTHORITY="$(dappCreate geb-protocol-token-authority ProtocolTokenAuthority)"
+sethSend "$GEB_ACCOUNTING_ENGINE" "modifyParameters(bytes32,address)" "$(seth --to-bytes32 "$(seth --from-ascii "protocolTokenAuthority")")" "$PROTOCOL_TOKEN_AUTHORITY"
+sethSend "$PROTOCOL_TOKEN_AUTHORITY" "addAuthorization(address)" "$GEB_DEBT_AUCTION_HOUSE"
+
+sethSend "$GEB_PROT" "setAuthority(address)" "$PROTOCOL_TOKEN_AUTHORITY"
+
+cat > "$OUT_DIR/load-proto-auth-addr-temp" <<EOF
+#!/bin/bash
+export PROTOCOL_TOKEN_AUTHORITY=$PROTOCOL_TOKEN_AUTHORITY
+EOF

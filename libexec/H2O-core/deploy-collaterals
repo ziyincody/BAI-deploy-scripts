@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+# Get addresses
+loadAddresses
+
+tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+uniswap_router=$(jq -r ".import.uniswap_router | values" "$CONFIG_FILE")
+uniswap_factory=$(jq -r ".import.uniswap_factory | values" "$CONFIG_FILE")
+chainlink_eth_usd=$(jq -r ".import.chainlink_eth_usd | values" "$CONFIG_FILE")
+weth=$(jq -r ".import.weth | values" "$CONFIG_FILE")
+osm_and_wrapper_deployer=$(dappCreate h2o-governance-actions DeployOSMandWrapper)
+
+# Set the proxy address as root of the roles (in order to be able to do all the variables set up)
+# sethSend "$MCD_ADM" 'setRootUser(address,bool)' "$PROXY_DEPLOYER" true
+
+for token in $tokens; do
+    tokenAddress=$(jq -r ".tokens.${token} | .import.gem" "$CONFIG_FILE")
+    
+    # We are not creating dummy tokens
+    if [[ "$tokenAddress" == "" ]]; then
+        IFS='/' read -ra joinSrc <<< "$(jq -r ".tokens.${token} | .test_gem_deploy.src | values" "$CONFIG_FILE")"
+        IFS=' ' read -ra joinParams <<< "$(jq -r ".tokens.${token} | .test_gem_deploy.params[]" "$CONFIG_FILE" | tr '\r\n' ' ')"
+        tokenAddress=$(dappCreate "${joinSrc[@]}" "${joinParams[@]}")
+
+        sethSend "$tokenAddress" "mint(address,uint256)" "$ETH_FROM" "50000000000000000000" 
+        sethSend "$tokenAddress" "approve(address,uint256)" "$uniswap_router" "10000000000000000000" 
+        sethSend "$uniswap_router" "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)" "$tokenAddress" "10000000000000000000" "10000000000000000000" "10000000000000000" "$ETH_FROM" "1635925448994" "--value" "10000000000000000"
+        sleep 30
+
+    fi
+    logAddr "${token}" "${tokenAddress}"
+
+    price_feed=$(jq -r ".tokens.${token}.oracle_deploy.import.price_feed" "$CONFIG_FILE")
+    "$LIBEXEC_DIR"/H2O-core/deploy-chainlink-collateral-oracle "$token" "$price_feed"
+
+    . "$OUT_DIR/load-chainlink-$token-oracle-addr-temp"
+    collateral_oracle="GEB_CHAINLINK_COLLATERAL_ORACLE_$token"
+    price_source="${!collateral_oracle}"
+
+    collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
+    IFS='/' read -ra joinSrc <<< "$(jq -r ".tokens.${token} | .join_deploy.src | values" "$CONFIG_FILE")"
+
+    IFS=' ' read -ra joinExtraParams <<< "$(jq -r ".tokens.${token} | .join_deploy.extraParams[]" "$CONFIG_FILE" | tr '\r\n' ' ')"
+    for collateral_type in $collateral_types; do
+        collateral_type_name=$(seth --to-bytes32 "$(seth --from-ascii "${token}-${collateral_type}")")
+        collateral_type_envVar="${token}_${collateral_type}"
+        auction_type=$(jq -r ".tokens.${token}.collateral_types.${collateral_type}.auction_type" "$CONFIG_FILE")
+
+        joinAddr=$(dappCreate "${joinSrc[@]}" "$GEB_SAFE_ENGINE" "$collateral_type_name" "$tokenAddress" "${joinExtraParams[@]}")
+        logAddr "GEB_JOIN_${collateral_type_envVar}" "$(eval "echo ${joinAddr}")"
+
+        window_size="15"
+        max_window_size="86400"
+        calldata="$(seth calldata "execute(address,address,address,address,address,uint256,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$chainlink_eth_usd" "$uniswap_factory" "$tokenAddress" "$weth" "$window_size" "$max_window_size")"
+        
+        calldata="$(seth calldata "execute(address,address,address,bytes32)" "$GEB_STABILITY_FEE_TREASURY" "$price_source" "$FSM_GOV_INTERFACE" "$collateral_type_name")"
+        
+        export SETH_ASYNC=yes
+        osm_tx="$(sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$osm_and_wrapper_deployer" "$calldata")"
+        export SETH_ASYNC=no
+
+        echo "$osm_tx"
+        osm_tx_topics="$(seth receipt "$osm_tx" logs | jq -c '.| .[] | select(.topics[0] == "0xde3e9f5d676da024a79885b4972e1916f7f719c45b89ff3654a111ded9adf505") | .topics')"
+        osm="$(seth --to-hex "$(seth --to-dec "$(echo $osm_tx_topics | jq -r ".[1]")")")"
+        fsm_wrapper="$(seth --to-hex "$(seth --to-dec "$(echo $osm_tx_topics | jq -r ".[2]")")")"
+        echo "$osm_tx_topics"
+
+        sethSend "$GEB_DEPLOY" 'deployCollateral(bytes32, bytes32, address, address, address)' \
+            "$(seth --to-bytes32 "$(seth --from-ascii "$auction_type")")"   \
+            "$collateral_type_name"    \
+            "$joinAddr" "$fsm_wrapper"                               \
+            "0x0000000000000000000000000000000000000000"
+        sethSend "$GEB_DEPLOY" 'addAuthToCollateralAuctionHouse(bytes32, address)' "$collateral_type_name" "$GEB_PAUSE"
+
+        
+        # Just in case there is a reorg or the node is not up to date we keep checking until getting a result
+        keepChecking=true
+        export keepChecking
+        while [[ "$keepChecking" == true ]]
+        do
+            data=()
+            while IFS=$'\n' read -r line; do data+=("$line"); done < <(seth call "$GEB_DEPLOY" "collateralTypes(bytes32)(address,address,address)" "$collateral_type_name")
+
+            if [[ ${data[0]} != "0x0000000000000000000000000000000000000000" || ${data[1]} != "0x0000000000000000000000000000000000000000" ]]; then
+                keepChecking=false
+            else
+                echo "Auction house not found, checking again in five seconds..."
+                sleep 5
+            fi
+        done
+        exports+="
+export ${token}=\"${tokenAddress}\"
+export GEB_JOIN_${collateral_type_envVar}=\"${joinAddr}\"
+export FEED_SECURITY_MODULE_${collateral_type_envVar}=\"${osm}\"
+        "
+
+        logAddr "GEB_COLLATERAL_AUCTION_HOUSE_${collateral_type_envVar}" "${data[1]}"
+        exports+="
+export GEB_COLLATERAL_AUCTION_HOUSE_${collateral_type_envVar}=\"${data[1]}\"
+        "
+    done
+done
+
+cat > "$OUT_DIR/load-collateral_types-addr-temp" << EOF
+#!/bin/bash
+${exports}
+EOF

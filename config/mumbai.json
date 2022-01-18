@@ -3,10 +3,10 @@
     "import": {
         "esm_threshold_setter": "0x0000000000000000000000000000000000000000",
         "faucet": "0x0000000000000000000000000000000000000000",
-        "uniswap_factory": "0xa83934dDC673903C481014c1Ead81470a4fF3431",
-        "uniswap_router": "0x47047Af04e8a8A33AeAF81a2564a09f89Ee99D10",
+        "uniswap_factory": "0x5757371414417b8c6caad45baef941abc7d3ab32",
+        "uniswap_router": "0x8954AfA98594b838bda56FE4C12a09D7739D179b",
         "chainlink_eth_usd": "0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada",
-        "weth": "0x86652c1301843B4E06fBfbBDaA6849266fb2b5e7"
+        "weth": "0x9c3c9283d3e44854697cd22d3faa240cfb032889"
     },
     "uniswap": {
         "coin_to_deposit_pool": "800",
@@ -33,6 +33,60 @@
         "symbol": "AQA",
         "name": "AQA governance Token",
         "type": "Delegate",
+        "staking": {
+            "reward_timeline": {
+                "value": "172800",
+                "unit": "seconds"
+            },
+            "reward_calculation_delay": {
+                "value": "120",
+                "unit": "seconds"
+            },
+            "max_delay": {
+                "value": "2592000",
+                "unit": "seconds"
+            },
+            "exit_delay": {
+                "value": "1814400",
+                "unit": "seconds"
+            },
+            "min_staked_tokens_to_keep": {
+                "value": "1",
+                "unit": "WAD"
+            },
+            "tokens_to_auction": {
+                "value": "5",
+                "unit": "WAD"
+            },
+            "system_coins_to_request": {
+                "value": "10",
+                "unit": "RAD"
+            },
+            "percentage_vested": {
+                "value": "40",
+                "unit": "hundreds"
+            },
+            "escrow_duration": {
+                "value": "600",
+                "unit": "seconds"
+            },
+            "duration_to_start_escrow": {
+                "value": "120",
+                "unit": "seconds"
+            },
+            "open_refill": {
+                "value": "0",
+                "unit": "seconds"
+            },
+            "refill_delay": {
+                "value": "60",
+                "unit": "seconds"
+            },
+            "refill_amount": {
+                "value": "1",
+                "unit": "WAD"
+            }
+        },
         "oracle_deploy": {
             "deploy": "0",
             "type": "UniswapConsecutiveSlots",
@@ -49,12 +103,30 @@
                 "unit": "WAD"
             },
             "chainlink": {
-                "base_caller_reward": "0",
-                "period_size": "3600",
-                "max_caller_reward": "10",
-                "reward_increase": "100",
-                "reward_increase_timeline": "3600",
-                "max_reward_increase_delay": "10800"
+                "base_caller_reward": {
+                    "value": "0",
+                    "unit": "WAD"
+                },
+                "period_size": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
+                "max_caller_reward": {
+                    "value": "10",
+                    "unit": "WAD"
+                },
+                "reward_increase": {
+                    "value": "100",
+                    "unit": "RAY"
+                },
+                "reward_increase_timeline": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
+                "max_reward_increase_delay": {
+                    "value": "10800",
+                    "unit": "seconds"
+                }
             },
             "uniswap": {
                 "denomination_token_symbol": "OCEAN",
@@ -64,15 +136,30 @@
                 "max_window_size": "432000",
                 "converter_feed_scaling_factor": "1000000000000000000",
                 "granularity": "168",
-                "base_caller_reward": "0",
-                "max_caller_reward": "5",
-                "reward_increase": "100",
-                "reward_increase_timeline": "3600",
-                "max_reward_increase_delay": "10800"
+                "base_caller_reward": {
+                    "value": "0",
+                    "unit": "WAD"
+                },
+                "max_caller_reward": {
+                    "value": "5",
+                    "unit": "WAD"
+                },
+                "reward_increase": {
+                    "value": "100",
+                    "unit": "RAY"
+                },
+                "reward_increase_timeline": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
+                "max_reward_increase_delay": {
+                    "value": "10800",
+                    "unit": "seconds"
+                }
             },
-            "signers": {
-                "0": "0"
-            }
+            "signers": [
+                ""
+            ]
         }
     },
     "pause": {
@@ -84,19 +171,43 @@
     },
     "safe_engine": {
         "global_debt_ceiling": "-1",
-        "safe_debt_ceiling": "10000000000"
+        "safe_debt_ceiling": {
+            "value": "10000000000",
+            "unit": "WAD"
+        }
     },
     "ds_vote_quorum": {
         "max_candidates_per_ballot": "5"
     },
     "accounting_engine": {
-        "pop_debt_delay": "1036800",
-        "surplus_auction_delay": "0",
-        "initial_debt_auction_minted_tokens": "439",
-        "debt_auction_bid_size": "35000",
-        "surplus_auction_amount_to_sell": "6000",
-        "surplus_buffer": "500000",
-        "disable_cooldown": "1814400"
+        "pop_debt_delay": {
+            "value": "1036800",
+            "unit": "seconds"
+        },
+        "surplus_auction_delay": {
+            "value": "0",
+            "unit": "seconds"
+        },
+        "initial_debt_auction_minted_tokens": {
+            "value": "439",
+            "unit": "WAD"
+        },
+        "debt_auction_bid_size": {
+            "value": "0.5",
+            "unit": "RAD"
+        },
+        "surplus_auction_amount_to_sell": {
+            "value": "0.5",
+            "unit": "RAD"
+        },
+        "surplus_buffer": {
+            "value": "500000",
+            "unit": "RAD"
+        },
+        "disable_cooldown": {
+            "value": "1814400",
+            "unit": "seconds"
+        }
     },
     "liquidation_engine": {
         "on_auction_system_coin_limit": "10000000000000"
@@ -132,7 +243,7 @@
     },
     "governance": {
         "type": "MULTISIG-SAFE",
-        "owners": "-/-"
+        "owners": []
     },
     "undefined": "1",
     "auto_surplus_buffer_setter": {
@@ -172,22 +283,49 @@
     },
     "single_ceiling_setter": {
         "deploy": "1",
-        "base_caller_reward": "0",
-        "max_caller_reward": "10",
-        "reward_increase": "100",
-        "reward_increase_timeline": "3600",
-        "max_reward_increase_delay": "10800",
-        "update_delay": "259200",
-        "ceiling_percentage_change": "130",
-        "max_collateral_ceiling": "-1",
-        "min_collateral_ceiling": "10000000",
+        "base_caller_reward": {
+            "value": "0",
+            "unit": "WAD"
+        },
+        "max_caller_reward": {
+            "value": "10",
+            "unit": "WAD"
+        },
+        "reward_increase": {
+            "value": "100",
+            "unit": "RAY"
+        },
+        "reward_increase_timeline": {
+            "value": "3600",
+            "unit": "seconds"
+        },
+        "max_reward_increase_delay": {
+            "value": "10800",
+            "unit": "seconds"
+        },
+        "update_delay": {
+            "value": "259200",
+            "unit": "seconds"
+        },
+        "ceiling_percentage_change": {
+            "value": "130",
+            "unit": "hundreds"
+        },
+        "max_collateral_ceiling": {
+            "value": "-1",
+            "unit": "RAD"
+        },
+        "min_collateral_ceiling": {
+            "value": "10000000",
+            "unit": "RAD"
+        },
         "last_update_time": "2840140800",
-        "manual_setters": {
-            "0": "0",
-            "1": "0",
-            "2": "0",
-            "3": "0"
-        }
+        "manual_setters": [
+            "0",
+            "0",
+            "0",
+            "0"
+        ]
     },
     "stability_fee_treasury": {
         "deploy": "1",
@@ -199,21 +337,42 @@
     },
     "redemption_rate_setter": {
         "deploy": "1",
-        "base_caller_reward": "0",
-        "max_caller_reward": "10",
-        "reward_increase": "100",
-        "reward_increase_timeline": "3600",
-        "max_reward_increase_delay": "10800",
-        "update_rate_delay": "14400"
+        "base_caller_reward": {
+            "value": "0",
+            "unit": "WAD"
+        },
+        "max_caller_reward": {
+            "value": "10",
+            "unit": "WAD"
+        },
+        "reward_increase": {
+            "value": "100",
+            "unit": "RAY"
+        },
+        "reward_increase_timeline": {
+            "value": "3600",
+            "unit": "seconds"
+        },
+        "max_reward_increase_delay": {
+            "value": "10800",
+            "unit": "seconds"
+        },
+        "update_rate_delay": {
+            "value": "14400",
+            "unit": "seconds"
+        }
     },
     "redemption_rate_calculator": {
         "base_type": "P",
         "sub_type": "RawPerSecond",
         "nb": "1000000000000000000",
         "Kc": "0",
-        "Kp_current": "5000000000000000",
+        "Kp_current": {
+            "value": "0.000000075",
+            "unit": "WAD"
+        },
         "Kp": {
-            "value": "5000000",
+            "value": "0.000000075",
             "unit": "WAD"
         },
         "pscl": {
@@ -236,25 +395,25 @@
             "value": "-0.999999999999999999999999999",
             "unit": "RAY"
         },
-        "imported_state": {
-            "0": "0",
-            "1": "0",
-            "2": "0",
-            "3": "0",
-            "4": "0"
-        },
-        "data_readers": {
-            "0": "0xfA5e4955a11902f849ECaddEf355Db69C2036de6",
-            "1": "0x0CE1fF652BE78322e312e5073CD96B5E1cF5306E",
-            "2": "0x3E0139cE3533a42A7D342841aEE69aB2BfEE1d51",
-            "3": "0xBd3f90047B14e4f392d6877276d52D0aC59F4CF8"
-        }
+        "imported_state": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+        ],
+        "data_readers": [
+            "0xfA5e4955a11902f849ECaddEf355Db69C2036de6",
+            "0x0CE1fF652BE78322e312e5073CD96B5E1cF5306E",
+            "0x3E0139cE3533a42A7D342841aEE69aB2BfEE1d51",
+            "0xBd3f90047B14e4f392d6877276d52D0aC59F4CF8"
+        ]
     },
     "protocol_token_holders": {
-        "amounts": {
-            "0": "1000000"
-        },
-        "holders": "-/-"
+        "amounts": [
+            "1000000"
+        ],
+        "holders": []
     },
     "coin": {
         "type": "INDEX",
@@ -271,14 +430,35 @@
             "strategy": "median",
             "sub_strategy": "DSM",
             "price": "3.14",
-            "dsm_deviation": "0.7",
+            "dsm_deviation": {
+                "value": "0.7",
+                "unit": "WAD"
+            },
             "chainlink": {
-                "base_caller_reward": "0",
-                "max_caller_reward": "10",
-                "period_size": "14400",
-                "reward_increase": "100",
-                "reward_increase_timeline": "3600",
-                "max_reward_increase_delay": "10800"
+                "base_caller_reward": {
+                    "value": "0",
+                    "unit": "WAD"
+                },
+                "max_caller_reward": {
+                    "value": "10",
+                    "unit": "WAD"
+                },
+                "period_size": {
+                    "value": "14400",
+                    "unit": "seconds"
+                },
+                "reward_increase": {
+                    "value": "100",
+                    "unit": "RAY"
+                },
+                "reward_increase_timeline": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
+                "max_reward_increase_delay": {
+                    "value": "10800",
+                    "unit": "seconds"
+                }
             },
             "uniswap": {
                 "denomination_token_symbol": "ETH",
@@ -288,15 +468,30 @@
                 "max_window_size": "86400",
                 "converter_feed_scaling_factor": "1000000000000000000",
                 "granularity": "4",
-                "base_caller_reward": "0",
-                "max_caller_reward": "10",
-                "reward_increase": "100",
-                "reward_increase_timeline": "3600",
-                "max_reward_increase_delay": "10800"
+                "base_caller_reward": {
+                    "value": "0",
+                    "unit": "WAD"
+                },
+                "max_caller_reward": {
+                    "value": "10",
+                    "unit": "WAD"
+                },
+                "reward_increase": {
+                    "value": "100",
+                    "unit": "RAY"
+                },
+                "reward_increase_timeline": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
+                "max_reward_increase_delay": {
+                    "value": "10800",
+                    "unit": "seconds"
+                }
             },
-            "signers": {
-                "0": "0xfA5e4955a11902f849ECaddEf355Db69C2036de6"
-            }
+            "signers": [
+                "0xfA5e4955a11902f849ECaddEf355Db69C2036de6"
+            ]
         },
         "spot_oracle_deploy": {
             "type": "UniswapConsecutiveSlots",
@@ -316,52 +511,6 @@
                 "max_window_size": "14400",
                 "converter_feed_scaling_factor": "1000000000000000000",
                 "granularity": "2",
-                "base_caller_reward": "0",
-                "max_caller_reward": "10",
-                "reward_increase": "100",
-                "reward_increase_timeline": "3600",
-                "max_reward_increase_delay": "10800"
-            },
-            "signers": {
-                "0": "0"
-            }
-        }
-    },
-    "tokens": {
-        "OCEAN": {
-            "import": {
-                "gem": "0"
-            },
-            "test_gem_deploy": {
-                "src": "ds-token/DSToken",
-                "params": {
-                    "0": "OCEAN",
-                    "1": "OCEAN"
-                },
-                "faucetSupply": "990000000000000000000000",
-                "faucetAmount": "50000000000000000000"
-            },
-            "join_deploy": {
-                "src": "geb-deploy/CollateralJoin1",
-                "params": {
-                    "0": "1000000000000000000000000"
-                },
-                "extraParams": "-/-"
-            },
-            "undefined": "990000000000000000000000",
-            "faucetAmount": "50000000000000000000",
-            "oracle_deploy": {
-                "import": {
-                    "integration": "0",
-                    "token_address": "0"
-                },
-                "type": "Chainlink",
-                "quorum": "1",
-                "fsm_delay": "3600",
-                "strategy": "median",
-                "sub_strategy": "OSM",
-                "price": "1700",
-                "dsm_deviation": "0.7",
                 "base_caller_reward": {
                     "value": "0",
                     "unit": "WAD"
@@ -370,19 +519,89 @@
                     "value": "10",
                     "unit": "WAD"
                 },
-                "period_size": "3600",
                 "reward_increase": {
                     "value": "100",
                     "unit": "RAY"
                 },
-                "reward_increase_timeline": "3600",
+                "reward_increase_timeline": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
+                "max_reward_increase_delay": {
+                    "value": "10800",
+                    "unit": "seconds"
+                }
+            },
+            "signers": [
+                ""
+            ]
+        }
+    },
+    "tokens": {
+        "OCEAN": {
+            "import": {
+                "gem": ""
+            },
+            "test_gem_deploy": {
+                "src": "ds-token/DSToken",
+                "params": [
+                    "\"OCEAN\"",
+                    "\"OCEAN\""
+                ],
+                "faucetSupply": "990000000000000000000000",
+                "faucetAmount": "50000000000000000000"
+            },
+            "join_deploy": {
+                "src": "geb-deploy/CollateralJoin1",
+                "params": [
+                    "1000000000000000000000000"
+                ],
+                "extraParams": []
+            },
+            "undefined": "990000000000000000000000",
+            "faucetAmount": "50000000000000000000",
+            "oracle_deploy": {
+                "import": {
+                    "integration": "0",
+                    "token_address": "0",
+                    "price_feed": "0x35e0d035f38E1fF930Fc4A3084bB0f2048C4676e"
+                },
+                "type": "Chainlink",
+                "quorum": "1",
+                "fsm_delay": "3600",
+                "strategy": "median",
+                "sub_strategy": "OSM",
+                "price": "1700",
+                "dsm_deviation": {
+                    "value": "0.7",
+                    "unit": "WAD"
+                },
+                "base_caller_reward": {
+                    "value": "0",
+                    "unit": "WAD"
+                },
+                "max_caller_reward": {
+                    "value": "10",
+                    "unit": "WAD"
+                },
+                "period_size": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
+                "reward_increase": {
+                    "value": "100",
+                    "unit": "RAY"
+                },
+                "reward_increase_timeline": {
+                    "value": "3600",
+                    "unit": "seconds"
+                },
                 "max_reward_increase_delay": {
                     "value": "10800",
                     "unit": "seconds"
                 },
-                "signers": {
-                    "0": "0"
-                }
+                "signers": [
+                ]
             },
             "collateral_types": {
                 "A": {
@@ -430,11 +649,11 @@
                         "unit": "RAD"
                     },
                     "debt_floor": {
-                        "value": "800",
+                        "value": "1",
                         "unit": "RAD"
                     },
                     "stability_fee": {
-                        "value": "2",
+                        "value": "0.999999999841053341478122823",
                         "unit": "RAY"
                     },
                     "liquidation_penalty": {
@@ -459,9 +678,9 @@
                     },
                     "treasury_fee_portion": "50000000000000000000",
                     "secondary_tax_receivers": {
-                        "percentages": "-/-"
+                        "percentages": []
                     },
-                    "undefined": "-/-"
+                    "undefined": []
                 }
             }
         }

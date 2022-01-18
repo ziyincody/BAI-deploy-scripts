@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+
+export SETH_ASYNC=yes
+SAFEENGINE_FABtx=$(dappCreate h20-deploy SAFEEngineFactory)                               
+TAXCOLLECTOR_FABtx=$(dappCreate h20-deploy TaxCollectorFactory)                             
+ACCOUNTINGENGINE_FABtx=$(dappCreate h20-deploy AccountingEngineFactory)                         
+LIQUIDATIONENGINE_FABtx=$(dappCreate h20-deploy LiquidationEngineFactory)                        
+COIN_FABtx=$(dappCreate h20-deploy CoinFactory)                                     
+COINJOIN_FABtx=$(dappCreate h20-deploy CoinJoinFactory)                                 
+STABILITYFEETREASURY_FABtx=$(dappCreate h20-deploy StabilityFeeTreasuryFactory)                     
+RECYCLINGSURPLUSAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy RecyclingSurplusAuctionHouseFactory)             
+BURNINGSURPLUSAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy BurningSurplusAuctionHouseFactory)               
+DEBTAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy DebtAuctionHouseFactory)                         
+ENGLISHCOLLATERALAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy EnglishCollateralAuctionHouseFactory)            
+INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FABtx=$(dappCreate h20-deploy IncreasingDiscountCollateralAuctionHouseFactory) 
+FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FABtx=$(dappCreate h20-deploy FixedDiscountCollateralAuctionHouseFactory) 
+ORACLERELAYER_FABtx=$(dappCreate h20-deploy OracleRelayerFactory)                            
+GLOBALSETTLEMENT_FABtx=$(dappCreate h20-deploy GlobalSettlementFactory)                         
+ESM_FABtx=$(dappCreate h20-deploy ESMFactory)                                      
+PAUSE_FABtx=$(dappCreate h20-deploy PauseFactory)                                    
+PROTESTPAUSE_FABtx=$(dappCreate h20-deploy ProtestPauseFactory)                             
+COINSAVINGSACCOUNT_FABtx=$(dappCreate h20-deploy CoinSavingsAccountFactory)    
+
+export SETH_ASYNC=no
+
+test "$(seth receipt "$SAFEENGINE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$TAXCOLLECTOR_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$ACCOUNTINGENGINE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$LIQUIDATIONENGINE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$COIN_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$COINJOIN_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$STABILITYFEETREASURY_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$RECYCLINGSURPLUSAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$BURNINGSURPLUSAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$DEBTAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$ENGLISHCOLLATERALAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$ORACLERELAYER_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$GLOBALSETTLEMENT_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$ESM_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$PAUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$PROTESTPAUSE_FABtx" status)" -eq 0 && exit 1
+test "$(seth receipt "$COINSAVINGSACCOUNT_FABtx" status)" -eq 0 && exit 1
+
+
+SAFEENGINE_FAB=$(seth receipt "$SAFEENGINE_FABtx" contractAddress)
+TAXCOLLECTOR_FAB=$(seth receipt "$TAXCOLLECTOR_FABtx" contractAddress)
+ACCOUNTINGENGINE_FAB=$(seth receipt "$ACCOUNTINGENGINE_FABtx" contractAddress)
+LIQUIDATIONENGINE_FAB=$(seth receipt "$LIQUIDATIONENGINE_FABtx" contractAddress)
+COIN_FAB=$(seth receipt "$COIN_FABtx" contractAddress)
+COINJOIN_FAB=$(seth receipt "$COINJOIN_FABtx" contractAddress)
+STABILITYFEETREASURY_FAB=$(seth receipt "$STABILITYFEETREASURY_FABtx" contractAddress)
+RECYCLINGSURPLUSAUCTIONHOUSE_FAB=$(seth receipt "$RECYCLINGSURPLUSAUCTIONHOUSE_FABtx" contractAddress)
+BURNINGSURPLUSAUCTIONHOUSE_FAB=$(seth receipt "$BURNINGSURPLUSAUCTIONHOUSE_FABtx" contractAddress)
+DEBTAUCTIONHOUSE_FAB=$(seth receipt "$DEBTAUCTIONHOUSE_FABtx" contractAddress)
+ENGLISHCOLLATERALAUCTIONHOUSE_FAB=$(seth receipt "$ENGLISHCOLLATERALAUCTIONHOUSE_FABtx" contractAddress)
+INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB=$(seth receipt "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FABtx" contractAddress)
+FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB=$(seth receipt "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FABtx" contractAddress)
+ORACLERELAYER_FAB=$(seth receipt "$ORACLERELAYER_FABtx" contractAddress)
+GLOBALSETTLEMENT_FAB=$(seth receipt "$GLOBALSETTLEMENT_FABtx" contractAddress)
+ESM_FAB=$(seth receipt "$ESM_FABtx" contractAddress)
+PAUSE_FAB=$(seth receipt "$PAUSE_FABtx" contractAddress)
+PROTESTPAUSE_FAB=$(seth receipt "$PROTESTPAUSE_FABtx" contractAddress)
+COINSAVINGSACCOUNT_FAB=$(seth receipt "$COINSAVINGSACCOUNT_FABtx" contractAddress)
+
+cat > "$OUT_DIR/load-fabs-addr-temp" <<EOF
+#!/bin/bash
+export SAFEENGINE_FAB=$SAFEENGINE_FAB
+export TAXCOLLECTOR_FAB=$TAXCOLLECTOR_FAB
+export ACCOUNTINGENGINE_FAB=$ACCOUNTINGENGINE_FAB
+export LIQUIDATIONENGINE_FAB=$LIQUIDATIONENGINE_FAB
+export COIN_FAB=$COIN_FAB
+export COINJOIN_FAB=$COINJOIN_FAB
+export STABILITYFEETREASURY_FAB=$STABILITYFEETREASURY_FAB
+export RECYCLINGSURPLUSAUCTIONHOUSE_FAB=$RECYCLINGSURPLUSAUCTIONHOUSE_FAB
+export BURNINGSURPLUSAUCTIONHOUSE_FAB=$BURNINGSURPLUSAUCTIONHOUSE_FAB
+export DEBTAUCTIONHOUSE_FAB=$DEBTAUCTIONHOUSE_FAB
+export ENGLISHCOLLATERALAUCTIONHOUSE_FAB=$ENGLISHCOLLATERALAUCTIONHOUSE_FAB
+export INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB=$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB
+export FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB=$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB
+export ORACLERELAYER_FAB=$ORACLERELAYER_FAB
+export GLOBALSETTLEMENT_FAB=$GLOBALSETTLEMENT_FAB
+export ESM_FAB=$ESM_FAB
+export PAUSE_FAB=$PAUSE_FAB
+export PROTESTPAUSE_FAB=$PROTESTPAUSE_FAB
+export COINSAVINGSACCOUNT_FAB=$COINSAVINGSACCOUNT_FAB
+EOF

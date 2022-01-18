@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+#  Copyright (C) 2019-2021 Maker Ecosystem Growth Holdings, INC.
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# shellcheck source=lib/common.sh
+. "$LIB_DIR/common.sh"
+loadAddresses
+. "$OUT_DIR/load-core-addr-temp"
+
+proto_symbol=$(jq -r ".protocol_token.symbol | values" "$CONFIG_FILE")
+proto_name=$(jq -r ".protocol_token.name | values" "$CONFIG_FILE")
+reward_timeline=$(readValue ".protocol_token.staking.reward_timeline | values" "$CONFIG_FILE")
+reward_calculation_delay=$(readValue ".protocol_token.staking.reward_calculation_delay | values" "$CONFIG_FILE")
+max_delay=$(readValue ".protocol_token.staking.max_delay | values" "$CONFIG_FILE")
+exit_delay=$(readValue ".protocol_token.staking.exit_delay | values" "$CONFIG_FILE")
+min_staked_tokens_to_keep=$(readValue ".protocol_token.staking.min_staked_tokens_to_keep | values" "$CONFIG_FILE")
+tokens_to_auction=$(readValue ".protocol_token.staking.tokens_to_auction | values" "$CONFIG_FILE")
+system_coins_to_request=$(readValue ".protocol_token.staking.system_coins_to_request | values" "$CONFIG_FILE")
+percentage_vested=$(readValue ".protocol_token.staking.percentage_vested | values" "$CONFIG_FILE")
+escrow_duration=$(readValue ".protocol_token.staking.escrow_duration | values" "$CONFIG_FILE")
+duration_to_start_escrow=$(readValue ".protocol_token.staking.duration_to_start_escrow | values" "$CONFIG_FILE")
+open_refill=$(readValue ".protocol_token.staking.open_refill | values" "$CONFIG_FILE")
+refill_delay=$(readValue ".protocol_token.staking.refill_delay | values" "$CONFIG_FILE")
+refill_amount=$(readValue ".protocol_token.staking.refill_amount | values" "$CONFIG_FILE")
+
+uniswap_router=$(jq -r ".import.uniswap_router | values" "$CONFIG_FILE")
+uniswap_factory=$(jq -r ".import.uniswap_factory | values" "$CONFIG_FILE")
+weth=$(jq -r ".import.weth | values" "$CONFIG_FILE")
+
+### Create Proto / Native token pool
+sethSend "$GEB_PROT" "mint(address,uint256)" "$ETH_FROM" "50000000000000000000" 
+sethSend "$GEB_PROT" "approve(address,uint256)" "$uniswap_router" "10000000000000000000" 
+
+sethSend "$uniswap_router" "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)" "$GEB_PROT" "100000000000000000" "100000000000000000" "100000000000000000" "$ETH_FROM" "1635925448994" "--value" "100000000000000000"
+UNI_PROTO_VS_NATIVE_POOL="$(seth call "$uniswap_factory" "getPair(address,address)(address)" "$weth" "$GEB_PROT")"
+echo "Staked ${proto_symbol}/Native LP Token"
+echo "st${proto_symbol}"
+STAKING_AUCTION_HOUSE="$(dappCreate geb-lender-first-resort StakedTokenAuctionHouse "$GEB_SAFE_ENGINE" "$UNI_PROTO_VS_NATIVE_POOL")"
+STAKING_TOKEN="$(dappCreate ds-token_latest DSDelegateTokenNoTransfer "\"Staked ${proto_symbol}/Native LP Token\"" "\"st${proto_symbol}\"")"
+
+STAKING_REWARD_ADJUSTER="$(dappCreate geb-lender-first-resort AutoRewardDripper \
+    "$ETH_FROM" \
+    "$GEB_PROT" \
+    "$reward_timeline" \
+    "$reward_calculation_delay" \
+    )"
+STAKING="$(dappCreate geb-lender-first-resort GebLenderFirstResortRewardsVested \
+    "$UNI_PROTO_VS_NATIVE_POOL" \
+    "$STAKING_TOKEN" \
+    "$GEB_PROT" \
+    "$STAKING_AUCTION_HOUSE" \
+    "$GEB_ACCOUNTING_ENGINE" \
+    "$GEB_SAFE_ENGINE" \
+    "$STAKING_REWARD_ADJUSTER" \
+    "$STAKING_REWARD_ADJUSTER" \
+    "$max_delay" \
+    "$exit_delay" \
+    "$min_staked_tokens_to_keep" \
+    "$tokens_to_auction" \
+    "$system_coins_to_request" \
+    "$percentage_vested" \
+    )"
+STAKING_REWARDS_ESCROW="$(dappCreate geb-lender-first-resort StakingRewardsEscrow "$STAKING" "$GEB_PROT" "$escrow_duration" "$duration_to_start_escrow" )"
+STAKING_REWARDS_REFILLER="$(dappCreate geb-stake-reward-refill StakeRewardRefill "$GEB_PROT" "$STAKING_REWARD_ADJUSTER" "$open_refill" "$refill_delay" "$refill_amount")"
+
+sethSend "$STAKING" "modifyParameters(bytes32,address)" "$(seth --to-bytes32 "$(seth --from-ascii "escrow")")" "$STAKING_REWARDS_ESCROW"
+sethSend "$STAKING_REWARD_ADJUSTER" "modifyParameters(bytes32,address)" "$(seth --to-bytes32 "$(seth --from-ascii "requestor")")" "$STAKING"
+sethSend "$GEB_STAKING_PROT" "setOwner(address)" "$STAKING"
+
+### Fill refiller with GEB_PROT
+
+cat > "$OUT_DIR/load-staking-addr-temp" <<EOF
+#!/bin/bash
+export GEB_STAKING=$STAKING
+export GEB_STAKING_AUCTION_HOUSE=$STAKING_AUCTION_HOUSE
+export GEB_STAKING_PROT=$STAKING_TOKEN
+export GEB_STAKING_TOKEN=$UNI_PROTO_VS_NATIVE_POOL
+export GEB_STAKING_REWARD_ADJUSTER=$STAKING_REWARD_ADJUSTER
+export GEB_STAKING_REWARD_REFILLER=$STAKING_REWARDS_REFILLER
+export GEB_STAKING_REWARDS_ESCROW=$STAKING_REWARDS_ESCROW
+EOF
