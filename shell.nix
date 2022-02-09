@@ -23,11 +23,13 @@ in mkShell {
     export NIX_SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
     export ETHERSCAN_API_KEY=8F2EN3ZZYKZKG1MV1J3APZVF24EE9W6129
     unset SSL_CERT_FILE
-  
-    export ETH_FROM=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
-    export ETH_RPC_URL=http://127.0.0.1:8545/
     export SETH_CHAIN=rinkeby
-    export ETH_RPC_ACCOUNTS=yes
+  
+    #export ETH_FROM=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+    #export ETH_RPC_URL=http://127.0.0.1:8545/
+    #export ETH_RPC_ACCOUNTS=yes
+    export ETH_FROM=0x472535d691C9cA0856E4A643252DedE2C0B8a3e2
+    
 
     setup-env() {
       . ${dds}/lib/setup-env.sh

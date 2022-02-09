@@ -151,7 +151,7 @@ readValue() {
 
 
 dappCreate() {
-    set -e
+    # set -e
     local lib; lib=$1
     local class; class=$2
     ETH_NONCE=$(cat "$NONCE_TMP_FILE")
@@ -168,10 +168,12 @@ dappCreate() {
     echo "===================" >> run.log
     address=$(DAPP_OUT="$DAPP_LIB/$lib/out" ETH_NONCE="$ETH_NONCE" dapp create "$class" "${@:3}")
     echo "$REAL_PATH\t$CONTRACT_PATH\t$address" >> env.log
-    ( cd "$REAL_PATH"; set +o pipefail ; dapp verify-contract "$CONTRACT_PATH" $address "${@:3}" | true ) &> /dev/null &
+    echo "$address"
+    (DAPP_OUT="$DAPP_LIB/$lib/out" dapp verify-contract "$CONTRACT_PATH" $address "${@:3}")
+    #( cd "$REAL_PATH"; set +o pipefail ; dapp verify-contract "$CONTRACT_PATH" $address "${@:3}" | true ) &> /dev/null &
     echo $((ETH_NONCE + 1)) > "$NONCE_TMP_FILE"
     copy "$lib"
-    echo "$address"
+    
 }
 
 sethSend() {
