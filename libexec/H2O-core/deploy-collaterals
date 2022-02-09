@@ -34,8 +34,11 @@ osm_and_wrapper_deployer=$(dappCreate h2o-governance-actions DeployOSMandWrapper
 for token in $tokens; do
     tokenAddress=$(jq -r ".tokens.${token} | .import.gem" "$CONFIG_FILE")
     
+    if [[ "$token" == "ETH" ]]; then
+        price_feed=${chainlink_eth_usd}
+        token_address=${weth}
     # We are not creating dummy tokens
-    if [[ "$tokenAddress" == "" ]]; then
+    elif [[ "$tokenAddress" == "" ]]; then
         IFS='/' read -ra joinSrc <<< "$(jq -r ".tokens.${token} | .test_gem_deploy.src | values" "$CONFIG_FILE")"
         IFS=' ' read -ra joinParams <<< "$(jq -r ".tokens.${token} | .test_gem_deploy.params[]" "$CONFIG_FILE" | tr '\r\n' ' ')"
         tokenAddress=$(dappCreate "${joinSrc[@]}" "${joinParams[@]}")
@@ -44,17 +47,13 @@ for token in $tokens; do
         sethSend "$tokenAddress" "approve(address,uint256)" "$uniswap_router" "10000000000000000000" 
         sethSend "$uniswap_router" "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)" "$tokenAddress" "10000000000000000000" "10000000000000000000" "10000000000000000" "$ETH_FROM" "1635925448994" "--value" "10000000000000000"
         sleep 30
-
+        logAddr "${token}" "${tokenAddress}"
+        price_feed=$(jq -r ".tokens.${token}.oracle_deploy.import.price_feed" "$CONFIG_FILE")
     fi
-    logAddr "${token}" "${tokenAddress}"
-
-    price_feed=$(jq -r ".tokens.${token}.oracle_deploy.import.price_feed" "$CONFIG_FILE")
+    
     "$LIBEXEC_DIR"/H2O-core/deploy-chainlink-collateral-oracle "$token" "$price_feed"
-
     . "$OUT_DIR/load-chainlink-$token-oracle-addr-temp"
     collateral_oracle="GEB_CHAINLINK_COLLATERAL_ORACLE_$token"
-    price_source="${!collateral_oracle}"
-
     collateral_types=$(jq -r ".tokens.${token}.collateral_types | keys_unsorted[]" "$CONFIG_FILE")
     IFS='/' read -ra joinSrc <<< "$(jq -r ".tokens.${token} | .join_deploy.src | values" "$CONFIG_FILE")"
 
@@ -67,11 +66,11 @@ for token in $tokens; do
         joinAddr=$(dappCreate "${joinSrc[@]}" "$GEB_SAFE_ENGINE" "$collateral_type_name" "$tokenAddress" "${joinExtraParams[@]}")
         logAddr "GEB_JOIN_${collateral_type_envVar}" "$(eval "echo ${joinAddr}")"
 
-        window_size="15"
-        max_window_size="86400"
-        calldata="$(seth calldata "execute(address,address,address,address,address,uint256,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$chainlink_eth_usd" "$uniswap_factory" "$tokenAddress" "$weth" "$window_size" "$max_window_size")"
+        # window_size="15"
+        # max_window_size="86400"
+        # calldata="$(seth calldata "execute(address,address,address,address,address,uint256,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$chainlink_eth_usd" "$uniswap_factory" "$tokenAddress" "$weth" "$window_size" "$max_window_size")"
         
-        calldata="$(seth calldata "execute(address,address,address,bytes32)" "$GEB_STABILITY_FEE_TREASURY" "$price_source" "$FSM_GOV_INTERFACE" "$collateral_type_name")"
+        calldata="$(seth calldata "execute(address,address,address,bytes32)" "$GEB_STABILITY_FEE_TREASURY" "$collateral_oracle" "$FSM_GOV_INTERFACE" "$collateral_type_name")"
         
         export SETH_ASYNC=yes
         osm_tx="$(sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$osm_and_wrapper_deployer" "$calldata")"

@@ -47,7 +47,7 @@ export SETH_ASYNC=no
 tx_topics="$(seth receipt "$medianizer_tx" logs | jq -c '.| .[] | select(.topics[0] == "0x9d1bccfbc412730c36f0d572d0b9a3b9514ca3c3496a3df9e2065b342d2c9aaa") | .topics')"
 GEB_COIN_USD_ORACLE="$(seth --to-hex "$(seth --to-dec "$(echo $tx_topics | jq -r ".[1]")")")"
 GEB_COIN_UNISWAP_POOL="$(seth call "$GEB_COIN_USD_ORACLE" "uniswapPair()(address)")"
-collateral_type_name="$(seth --to-bytes32 "$(seth --from-ascii "H2O")")"
+collateral_type_name="$(seth --to-bytes32 "$(seth --from-ascii "ETH")")"
 echo "$GEB_STABILITY_FEE_TREASURY"
 echo "$GEB_COIN_USD_ORACLE"
 echo "$FSM_GOV_INTERFACE"

@@ -326,7 +326,7 @@
         "name": "ds-token-dd409a7",
         "ref": "HEAD",
         "rev": "dd409a7b3dcac4bc85677d5b66acd1c122145afa",
-        "url": "git@github.com:reflexer-labs/ds-token"
+        "url": "https://github.com/reflexer-labs/ds-token"
       }
     },
     "ds-value_5aaf162": {
@@ -500,7 +500,7 @@
         "name": "geb-chainlink-median-c831e55",
         "ref": "HEAD",
         "rev": "c831e5505272ad0e226a0b2d926273882a30bcbc",
-        "url": "git@github.com:reflexer-labs/geb-chainlink-median"
+        "url": "https://github.com/reflexer-labs/geb-chainlink-median"
       }
     },
     "geb-collateral-auction-throttler_058fc25": {
@@ -683,7 +683,7 @@
         "name": "h2o-keeper-flash-proxy-52667f7",
         "ref": "HEAD",
         "rev": "52667f74c03f2ac3501ff306a568a4b86bd46976",
-        "url": "git@github.com:stablecoin-research/h2o-keeper-flash-proxy"
+        "url": "https://github.com/stablecoin-research/h2o-keeper-flash-proxy"
       }
     },
     "geb-lender-first-resort_faed45b": {
@@ -695,7 +695,7 @@
         "name": "geb-lender-first-resort-faed45b",
         "ref": "HEAD",
         "rev": "faed45ba03c7225c876429bef568af1f90956c48",
-        "url": "git@github.com:reflexer-labs/geb-lender-first-resort"
+        "url": "https://github.com/reflexer-labs/geb-lender-first-resort"
       }
     },
     "geb-pause-schedule-proxy-actions_369b546": {
@@ -741,7 +741,7 @@
         "name": "geb-protocol-token-authority-23fe8a8",
         "ref": "HEAD",
         "rev": "23fe8a8cc8965337ced081c00cbde647d22b8584",
-        "url": "git@github.com:reflexer-labs/geb-protocol-token-authority"
+        "url": "https://github.com/reflexer-labs/geb-protocol-token-authority"
       }
     },
     "geb-proxy-actions_a7bbc32": {
@@ -877,7 +877,7 @@
         "name": "geb-stake-reward-refill-b452774",
         "ref": "HEAD",
         "rev": "b4527749cdffb38454c1cd8e5b83248861eb2b11",
-        "url": "git@github.com:reflexer-labs/geb-stake-reward-refill"
+        "url": "https://github.com/reflexer-labs/geb-stake-reward-refill"
       }
     },
     "geb-treasury-reimbursement_096de20": {
@@ -1031,9 +1031,9 @@
       "name": "h20-deploy",
       "repo": {
         "name": "h20-deploy-81ce6ef",
-        "ref": "adding-fixed-collateral-auction-house-discount",
+        "ref": "HEAD",
         "rev": "68357e030206efec2bb170ae1c33e70e7bcce3fc",
-        "url": "git@github.com:stablecoin-research/h20-deploy"
+        "url": "https://github.com/stablecoin-research/h20-deploy"
       }
     },
     "h2o-chainlink-median_5d51c6d": {
@@ -1046,7 +1046,7 @@
         "name": "h2o-chainlink-median-5d51c6d",
         "ref": "HEAD",
         "rev": "5d51c6dea677998e8f2b12ca1371e84ed2da0505",
-        "url": "git@github.com:stablecoin-research/h2o-chainlink-median"
+        "url": "https://github.com/stablecoin-research/h2o-chainlink-median"
       }
     },
     "h2o-debt-floor-adjuster_fcd69bd": {
@@ -1059,7 +1059,7 @@
         "name": "h2o-debt-floor-adjuster-fcd69bd",
         "ref": "HEAD",
         "rev": "fcd69bdf2fd8f505e1502f6d0febdb6b4218aa48",
-        "url": "git@github.com:stablecoin-research/h2o-debt-floor-adjuster"
+        "url": "https://github.com/stablecoin-research/h2o-debt-floor-adjuster"
       }
     },
     "h2o-governance-actions_6ff484": {
@@ -1081,7 +1081,7 @@
         "name": "h2o-governance-actions-6ff484",
         "ref": "HEAD",
         "rev": "6ff484744d382e192e1539c563118b86a17a083c",
-        "url": "git@github.com:stablecoin-research/h2o-governance-actions"
+        "url": "https://github.com/stablecoin-research/h2o-governance-actions"
       }
     },
     "h2o-merkle-distributor_d2e8f8a": {
@@ -1099,7 +1099,7 @@
         "name": "h2o-merkle-distributor-d2e8f8a",
         "ref": "HEAD",
         "rev": "d2e8f8a887ed61f8b54631f092a5025b247cbc46",
-        "url": "git@github.com:stablecoin-research/h2o-merkle-distributor"
+        "url": "https://github.com/stablecoin-research/h2o-merkle-distributor"
       }
     },
     "multicall_0b779cc": {
