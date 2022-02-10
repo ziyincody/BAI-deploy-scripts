@@ -18,7 +18,7 @@
 # shellcheck source=lib/common.sh
 . "$LIB_DIR/common.sh"
 
-export SETH_ASYNC=yes
+# export SETH_ASYNC=yes
 SAFEENGINE_FABtx=$(dappCreate h20-deploy SAFEEngineFactory)                               
 TAXCOLLECTOR_FABtx=$(dappCreate h20-deploy TaxCollectorFactory)                             
 ACCOUNTINGENGINE_FABtx=$(dappCreate h20-deploy AccountingEngineFactory)                         
@@ -39,7 +39,7 @@ PAUSE_FABtx=$(dappCreate h20-deploy PauseFactory)
 PROTESTPAUSE_FABtx=$(dappCreate h20-deploy ProtestPauseFactory)                             
 COINSAVINGSACCOUNT_FABtx=$(dappCreate h20-deploy CoinSavingsAccountFactory)    
 
-export SETH_ASYNC=no
+# export SETH_ASYNC=no
 
 test "$(seth receipt "$SAFEENGINE_FABtx" status)" -eq 0 && exit 1
 test "$(seth receipt "$TAXCOLLECTOR_FABtx" status)" -eq 0 && exit 1

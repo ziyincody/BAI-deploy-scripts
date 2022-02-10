@@ -21,6 +21,8 @@ echo "$ETH_NONCE"
 . "$LIB_DIR/common.sh"
 
 loadAddresses
+. addresses.sh
+
 WETH=$(jq -r ".import.weth | values" "$CONFIG_FILE")
 
 # Deploy Multicall
@@ -109,7 +111,6 @@ if [[ -z "$PROXY_PAUSE_ACTIONS" ]]; then
 
     GEB_POLLING_EMITTER="$(dappCreate geb-polling-emitter GebPollingEmitter)"
     GEB_GOV_ACTIONS="$(dappCreate h20-deploy GovActions)"
-    GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
 
     PROXY_ACTIONS="$(dappCreate geb-proxy-actions GebProxyActions)"
     PROXY_ACTIONS_INCENTIVES="$(dappCreate geb-proxy-actions GebProxyIncentivesActions)"
@@ -121,11 +122,10 @@ if [[ -z "$PROXY_PAUSE_ACTIONS" ]]; then
     PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseProxyActions)"
 fi
 
-# Deploy Fabs
-echo "Deploy Fabs"
+# Deploy Factories
+echo "Deploy Factories"
 if [[ -z "$FSM_GOV_INTERFACE" ]]; then
     "$LIBEXEC_DIR/H2O-core/deploy-fab"
-    # shellcheck source=/dev/null
     . "$OUT_DIR/load-fabs-addr-temp"
 fi
 
@@ -314,23 +314,14 @@ EOF
 
 echo "Deploy other core"
 "$LIBEXEC_DIR"/setters/set-oracle-relayer-params
-
 "$LIBEXEC_DIR"/setters/set-safe-engine-params
-
 "$LIBEXEC_DIR"/setters/set-accounting-engine-params
-
 "$LIBEXEC_DIR"/H2O-core/deploy-collaterals
-
 "$LIBEXEC_DIR"/setters/set-collateral-auction-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-tax-collector-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-safe-engine-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-liquidation-engine-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-oracle-relayer-params
-
 "$LIBEXEC_DIR"/H2O-core/deploy-staking
 
 sethSend "$GEB_DEPLOY" 'takeControl(address)' "$ETH_FROM"

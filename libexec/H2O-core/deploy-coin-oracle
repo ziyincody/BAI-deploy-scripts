@@ -29,17 +29,22 @@ dsm_and_wrapper_deployer=$(dappCreate h2o-governance-actions DeployDSMandWrapper
 
 dsm_deviation=$(readValue ".coin.oracle_deploy.dsm_deviation" "$CONFIG_FILE")
 
+
+# Mint index token then add liquidity to <index>/eth pool
 sethSend "$GEB_COIN" "mint(address,uint256)" "$ETH_FROM" "50000000000000000000" 
 sethSend "$GEB_COIN" "approve(address,uint256)" "$uniswap_router" "10000000000000000000" 
-
 sethSend "$uniswap_router" "addLiquidityETH(address,uint256,uint256,uint256,address,uint256)" "$GEB_COIN" "100000000000000000" "100000000000000000" "100000000000000000" "$ETH_FROM" "1635925448994" "--value" "100000000000000000"
 
+
+# deploy uniswap medianizer (index/eth with eth/usd => index/usd)
+# https://github.com/stablecoin-research/h2o-governance-actions/blob/109f633079c099dab8e4ec7be50e916372d6a980/src/DeployUniswapMedianizer.sol#L25
 sleep 30
 window_size="15"
 max_window_size="86400"
 calldata="$(seth calldata "execute(address,address,address,address,address,uint256,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$chainlink_eth_usd" "$uniswap_factory" "$GEB_COIN" "$weth" "$window_size" "$max_window_size")"
 
 export SETH_ASYNC=yes
+# Use proxy to make this execution
 medianizer_tx="$(sethSend "$PROXY_DEPLOYER" 'execute(address,bytes memory)' "$uniswap_medianizer_deployer" "$calldata")"
 echo "$medianizer_tx"
 export SETH_ASYNC=no
@@ -53,6 +58,9 @@ echo "$GEB_COIN_USD_ORACLE"
 echo "$FSM_GOV_INTERFACE"
 echo "$collateral_type_name" 
 echo "$dsm_deviation"
+
+# Deploy DSM wrapper
+# https://github.com/stablecoin-research/h2o-governance-actions/blob/f651ba5f1773f88776435827ae29be51220593da/src/DeployDSMandWrapper.sol#L32
 calldata="$(seth calldata "execute(address,address,address,bytes32,uint256)" "$GEB_STABILITY_FEE_TREASURY" "$GEB_COIN_USD_ORACLE" "$FSM_GOV_INTERFACE" "$collateral_type_name" "$dsm_deviation")"
 
 export SETH_ASYNC=yes
