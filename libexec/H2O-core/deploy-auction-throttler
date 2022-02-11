@@ -15,14 +15,13 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# shellcheck source=lib/common.sh
-. "$LIB_DIR/common.sh"
 
+. "$LIB_DIR/common.sh"
 . "$OUT_DIR/load-core-addr-temp"
 
 auction_throttler_deployer=$(dappCreate h2o-governance-actions DeployCollateralAuctionThottler)
 
-
+# https://github.com/stablecoin-research/h2o-governance-actions/blob/master/src/DeployCollateralAuctionThottler.sol#L20
 calldata="$(seth calldata "execute(address,address,address)" "$GEB_SAFE_ENGINE" "$GEB_LIQUIDATION_ENGINE" "$GEB_STABILITY_FEE_TREASURY")"
 
 export SETH_ASYNC=yes

@@ -1,28 +1,14 @@
-# H20 deployment scripts
+# BAI deployment scripts
 ![Build Status](https://github.com/stablecoin-research/H20-deploy-scripts/actions/workflows/.github/workflows/tests.yaml/badge.svg?branch=master)
-
-A set of scripts that deploy  the whole H20  core system contracts and helpers []() to an
-Ethereum chain of your choosing. this then  is used by the testchain to allow the SDK to interact with the  contracts for running the application .
 
 ## Description
 
 This repo is composed of following main components:
 
-* Bash [scripts](/scripts) to set the enviornment variables  of the base system.
-
-* [Dependency of core contracts](/deps) for  providing the necessary contracts  to be deployed on the mainnet . 
-
-
-* [Whole deployment schedule](/libexec)  : these scripts  consist of the whole logic of setting up the contracts with the default system parameters , and then setting up the 
-
-for the first time  mainnet deployment , the  values are to be referenced from file like  config-H20-params.json . it will be stored as `$CONFIG_FILE` in the given
-
-
-At the end of the first step, the addresses of deployed contracts are written to
-an `testchain-H20/out/addresses.json` file. The scripts read those addresses and use `seth`
-and `dapp` to modify the deployment, using the values in `testchain-H20/out/config.json`.
-
-
+* Bash scripts to set the enviornment variables of the base system.
+* `/config`: contains all the configuration params for different chains. E.g. `rinkeby.json` contains the addresses/configurations for the rinkeby environment
+* `/libexec`: these scripts consist of the whole logic of setting up the contracts with the default system parameters, read from the config files 
+* `/lib`: helper scripts
 
 ## Installing
 
@@ -34,10 +20,14 @@ $ nix-shell --pure
 
 to drop into a Bash shell with all dependency installed.
 
+### Github repo dependencies
+
+Git repo dependencies are modified using `.dapp.json` file. Re-running `nix-shell` will install the new/modified repos to nix store.
+
 ### Ethereum node
 
 You'll also need an Ethereum RPC node to connect to. Depending on your usecase, this
-could be a local node (e.g. `dapp testnet`) or a remote one.
+could be a local node (e.g. `dapp testnet`, `npx hardhat node`) or a remote one.
 
 ## Configuration
 
@@ -61,17 +51,14 @@ But you can also configure the below variables manually:
 - `ETH_KEYSTORE`: keystore path
 - `ETH_RPC_URL`: URL of the RPC node
 
-
+For more info, please refer to https://github.com/dapphub/dapptools/tree/master/src/seth.
 
 ## Libexec : 
 
-- these form the core scripts that define the actual workflow of defining the contracts on the 
-
-## parameters to be set
-
-
-
-
+Core scripts to deploy and set parameters for the system.
+- `base-deploy`: the script called by `dss-deploy` to start executing all other deploy scripts
+- `/H2O-core`: core scripts called by `base-deploy` that deploy different system components
+- `/setters`: scripts that fetch pre-defined params from `config.json` files then sets the parameters for the systems
 
 ### Chain configuration
 
@@ -95,13 +82,9 @@ Currently, there are default config files for 3 networks:
 
 It is possible to pass a value to define a testing scenario via `-c` flag (e.g. `dss-deploy testchain -c crash-bite`)
 
-The only case currently available is:
+### Deploy on Rinkeby (or mainnet) with default config file
 
-- `crash-bite`
-
-### Deploy on Kovan (or mainnet) with default config file
-
-`dss-deploy kovan / main `
+`dss-deploy rinkeby / main `
 
 
 ### Deploy on any network passing a custom config file
@@ -165,7 +148,4 @@ dapp2nix clone-recursive contracts
 
 - `dss-deploy` [source code](https://github.com/makerdao/dss-deploy)
 - `dss` is documented in the [wiki](https://github.com/makerdao/dss/wiki) and in [DEVELOPING.md](https://github.com/makerdao/dss/blob/master/DEVELOPING.md)
-
-
-
 

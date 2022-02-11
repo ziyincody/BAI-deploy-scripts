@@ -15,26 +15,25 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# shellcheck source=lib/common.sh
-. "$LIB_DIR/common.sh"
-#/nix/store/ff5d6f2wfmyiadhwy310kd2inb56a6az-H20-deploy-scripts-solidity-packages/dapp
-# sethSend "$(eval echo "\$VAL_${token}")" 'setBar(uint256)' "$(seth --to-uint256 3)"
-# contract=$(dappCreate ds-value DSValue)
-# eval "export VAL_${token}=${contract}"
-# logAddr "VAL_${token}" "$(eval "echo ${contract}")"
-
 echo "$BIN_DIR/contracts/$lib/out"
 echo "$ETH_NONCE"
-eval "export UNISWAP_FACTORY=${contract}"
-eval "export UNISWAP_FACTORY=0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
-eval "export UNISWAP_ROUTER=0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
 
-# Deploy  the oracle module and medianizer contract
-tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
+. "$LIB_DIR/common.sh"
+
+loadAddresses
+. addresses.sh
+
+WETH=$(jq -r ".import.weth | values" "$CONFIG_FILE")
+
 # Deploy Multicall
-MULTICALL=$(dappCreate multicall Multicall)
-copy multicall
+echo "Deploy Multicall"
+if [[ -z "$MULTICALL" ]]; then
+    MULTICALL=$(dappCreate multicall Multicall)
+    copy multicall
+fi
 
+# Deploy the oracle module and medianizer contract
+tokens=$(jq -r ".tokens | keys_unsorted[]" "$CONFIG_FILE")
 for token in $tokens; do
     pipAddr=$(jq -r ".tokens.${token} | .import.pip | values" "$CONFIG_FILE")
     if [[ "$pipAddr" == "" ]]; then
@@ -70,7 +69,7 @@ done
 
 
 # Deploy ProxyRegistry
-PROXY_REGISTRY=$(jq -r ".import.proxyRegistry | values" "$CONFIG_FILE")
+echo "Deploy ProxyResigry"
 if [[ -z "$PROXY_REGISTRY" ]]; then
     PROXY_FACTORY=$(dappCreate ds-proxy DSProxyFactory)
     PROXY_REGISTRY=$(dappCreate geb-proxy-registry GebProxyRegistry "$PROXY_FACTORY")
@@ -83,6 +82,7 @@ fi
 
 
 # Get a proxy for the deployer address (create if didn't previously exist)
+echo "Build Proxy Deployer"
 PROXY_DEPLOYER=$(seth call "$PROXY_REGISTRY" 'proxies(address)(address)' "$ETH_FROM")
 if [[ "$PROXY_DEPLOYER" == "0x0000000000000000000000000000000000000000" ]]; then
     sethSend "$PROXY_REGISTRY" 'build()'
@@ -90,63 +90,52 @@ if [[ "$PROXY_DEPLOYER" == "0x0000000000000000000000000000000000000000" ]]; then
 fi
 
 
-WETH="0xd0a1e359811322d97991e03f863a0c30c2cf029c" # "$(dappCreate h20-deploy WETH9_)" #"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" # kovan -
-sethSend "$WETH" --value 500000000000000000
-
 # create multisig
-GEB_MULTISIG=$(jq -r ".import.multisig | values" "$CONFIG_FILE")
-if [[ -z "$GEB_PROT" ]]; then
+echo "Deploy Multisig"
+if [[ -z "$GEB_MULTISIG" ]]; then
     GEB_MULTISIG="$(dappCreate geb-basic-multisig MultiSigWallet "[$ETH_FROM]" "1")"
 else
     export GEB_MULTISIG
 fi
-GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
+
 #GEB_MULTISIG_PROXY="$(sethSend "$PROXY_REGISTRY" "build(address)" "$GEB_MULTISIG")"
 
 
 # ================== Peripherials ===========================
 
 # deploy TokenBurner
-GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
+echo "Deploy Proxy Actions"
+if [[ -z "$PROXY_PAUSE_ACTIONS" ]]; then
+    GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
+    GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
 
-GEB_POLLING_EMITTER="$(dappCreate geb-polling-emitter GebPollingEmitter)"
-GEB_GOV_ACTIONS="$(dappCreate h20-deploy GovActions)"
-GEB_ESM_TOKEN_BURNER="$(dappCreate geb-pit TokenBurner)"
+    GEB_POLLING_EMITTER="$(dappCreate geb-polling-emitter GebPollingEmitter)"
+    GEB_GOV_ACTIONS="$(dappCreate h20-deploy GovActions)"
 
-PROXY_ACTIONS="$(dappCreate geb-proxy-actions GebProxyActions)"
-PROXY_ACTIONS_INCENTIVES="$(dappCreate geb-proxy-actions GebProxyIncentivesActions)"
-PROXY_ACTIONS_GLOBAL_SETTLEMENT="$(dappCreate geb-proxy-actions GebProxyActionsGlobalSettlement)"
-PROXY_DEBT_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxyDebtAuctionActions)"
-PROXY_SURPLUS_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxySurplusAuctionActions)"
-PROXY_SAVIOUR_ACTIONS="$(dappCreate geb-proxy-actions GebProxySaviourActions)"
-PROXY_PAUSE_SCHEDULE_ACTIONS="$(dappCreate geb-pause-schedule-proxy-actions GebPauseScheduleProxyActions)"
-PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseProxyActions)"
+    PROXY_ACTIONS="$(dappCreate geb-proxy-actions GebProxyActions)"
+    PROXY_ACTIONS_INCENTIVES="$(dappCreate geb-proxy-actions GebProxyIncentivesActions)"
+    PROXY_ACTIONS_GLOBAL_SETTLEMENT="$(dappCreate geb-proxy-actions GebProxyActionsGlobalSettlement)"
+    PROXY_DEBT_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxyDebtAuctionActions)"
+    PROXY_SURPLUS_AUCTION_ACTIONS="$(dappCreate geb-proxy-actions GebProxySurplusAuctionActions)"
+    PROXY_SAVIOUR_ACTIONS="$(dappCreate geb-proxy-actions GebProxySaviourActions)"
+    PROXY_PAUSE_SCHEDULE_ACTIONS="$(dappCreate geb-pause-schedule-proxy-actions GebPauseScheduleProxyActions)"
+    PROXY_PAUSE_ACTIONS="$(dappCreate geb-deploy-pause-proxy-actions GebDeployPauseProxyActions)"
+fi
+
+# Deploy Factories
+echo "Deploy Factories"
+if [[ -z "$FSM_GOV_INTERFACE" ]]; then
+    "$LIBEXEC_DIR/H2O-core/deploy-fab"
+    . "$OUT_DIR/load-fabs-addr-temp"
+fi
 
 
-# Deploy Fabs
-"$LIBEXEC_DIR/H2O-core/deploy-fab"
-# shellcheck source=/dev/null
-. "$OUT_DIR/load-fabs-addr-temp"
-rm "$OUT_DIR/load-fabs-addr-temp"
-
-
-GEB_PROT=$(jq -r ".import.gov | values" "$CONFIG_FILE")
+echo "Deploy Protocol token"
 if [[ -z "$GEB_PROT" ]]; then
     # It means the GOV token will be created now in the next deployment script call, then we can send funds to the Faucet and set permissions to FLOP
     newGovToken=true
-else
-    newGovToken=false
-    export GEB_PROT
-fi
-
-# If no Governance token is defined, create one
-if [ -z "$GEB_PROT" ]
-then
-    GEB_PROT="$(dappCreate ds-token DSToken '"AQA"' '"AQA"')"
-fi
-
-# Mint Gov Token, send to the Faucet and set permissions if a new token
-if [[ "$newGovToken" == true ]]; then
+    GEB_PROT="$(dappCreate ds-token DSToken '"BGT"' '"BGT"')"
+    # Mint Gov Token, send to the Faucet and set permissions if a new token
     sethSend "$GEB_PROT" 'mint(address,uint256)' "$ETH_FROM" "$(seth --to-uint256 "$(seth --to-wei 1000000 ETH)")"
     # sethSend "$FAUCET" 'gulp(address)' "$MCD_GOV"
 
@@ -164,65 +153,66 @@ if [[ "$newGovToken" == true ]]; then
 
     # # Set root to MCD_PAUSE_PROXY
     # sethSend "$GOV_GUARD" 'setRoot(address)' "$MCD_PAUSE_PROXY"
+# else
+#     newGovToken=false
+#     export GEB_PROT
+#     sethSend "$GEB_PROT" 'mint(uint256)' "100000000000000000000"
 fi
 
 
 # ================== Core ===========================
 
+echo "Deploy Core"
+if [[ -z "$FSM_GOV_INTERFACE" ]]; then
 
-sethSend "$GEB_PROT" 'mint(uint256)' "100000000000000000000"
+    GEB_DEPLOY=$(dappCreate h20-deploy GebDeploy)
 
-GEB_DEPLOY=$(dappCreate h20-deploy GebDeploy)
+    GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
+    sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_DEPLOY" true
 
-GEB_PAUSE_AUTHORITY="$(dappCreate ds-roles DSRoles)"
-sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_DEPLOY" true
+    sethSend "$GEB_DEPLOY" "setFirstFactoryBatch(address,address,address,address,address,address,address)" "$SAFEENGINE_FAB" "$TAXCOLLECTOR_FAB" "$ACCOUNTINGENGINE_FAB" "$LIQUIDATIONENGINE_FAB" "$COIN_FAB" "$COINJOIN_FAB" "$COINSAVINGSACCOUNT_FAB"
+    sethSend "$GEB_DEPLOY" "setSecondFactoryBatch(address,address,address,address,address,address,address,address,address)" "$RECYCLINGSURPLUSAUCTIONHOUSE_FAB" "$BURNINGSURPLUSAUCTIONHOUSE_FAB" "$DEBTAUCTIONHOUSE_FAB" "$ENGLISHCOLLATERALAUCTIONHOUSE_FAB" "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB" "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB" "$ORACLERELAYER_FAB" "$GLOBALSETTLEMENT_FAB" "$ESM_FAB"
+    sethSend "$GEB_DEPLOY" "setThirdFactoryBatch(address,address,address)" "$PAUSE_FAB" "$PROTESTPAUSE_FAB" "$STABILITYFEETREASURY_FAB"
 
-sethSend "$GEB_DEPLOY" "setFirstFactoryBatch(address,address,address,address,address,address,address)" "$SAFEENGINE_FAB" "$TAXCOLLECTOR_FAB" "$ACCOUNTINGENGINE_FAB" "$LIQUIDATIONENGINE_FAB" "$COIN_FAB" "$COINJOIN_FAB" "$COINSAVINGSACCOUNT_FAB"
-sethSend "$GEB_DEPLOY" "setSecondFactoryBatch(address,address,address,address,address,address,address,address,address)" "$RECYCLINGSURPLUSAUCTIONHOUSE_FAB" "$BURNINGSURPLUSAUCTIONHOUSE_FAB" "$DEBTAUCTIONHOUSE_FAB" "$ENGLISHCOLLATERALAUCTIONHOUSE_FAB" "$INCREASINGDISCOUNTCOLLATERALAUCTIONHOUSE_FAB" "$FIXED_DISCOUNT_COLLATERAL_AUCTION_HOUSE_FAB" "$ORACLERELAYER_FAB" "$GLOBALSETTLEMENT_FAB" "$ESM_FAB"
-sethSend "$GEB_DEPLOY" "setThirdFactoryBatch(address,address,address)" "$PAUSE_FAB" "$PROTESTPAUSE_FAB" "$STABILITYFEETREASURY_FAB"
+    sethSend "$GEB_DEPLOY" 'deploySAFEEngine()'
+    sethSend "$GEB_DEPLOY" 'deployCoin(string, string, uint256)' '"BAI Index"' '"BAI"' "4" 
+    sethSend "$GEB_DEPLOY" 'deployTaxation()'
+    sethSend "$GEB_DEPLOY" 'deployAuctions(address, address, bytes32)' "$GEB_PROT" "$ETH_FROM" "$(seth --to-bytes32 "$(seth --from-ascii "recycling")")"
+    sethSend "$GEB_DEPLOY" 'deployAccountingEngine()'
+    sethSend "$GEB_DEPLOY" 'deployStabilityFeeTreasury()'
+    sethSend "$GEB_DEPLOY" 'deployLiquidator()'
+    sethSend "$GEB_DEPLOY" 'deployShutdown(address, address, address, uint256)' "$GEB_PROT" "0x0000000000000000000000000000000000000000" "0x0000000000000000000000000000000000000000" "10"
 
-sethSend "$GEB_DEPLOY" 'deploySAFEEngine()'
-# Remove kovan chain id
-sethSend "$GEB_DEPLOY" 'deployCoin(string, string, uint256)' '"H2O Index"' '"H2O"' "42" 
-sethSend "$GEB_DEPLOY" 'deployTaxation()'
-sethSend "$GEB_DEPLOY" 'deployAuctions(address, address, bytes32)' "$GEB_PROT" "$ETH_FROM" "$(seth --to-bytes32 "$(seth --from-ascii "recycling")")"
-sethSend "$GEB_DEPLOY" 'deployAccountingEngine()'
-sethSend "$GEB_DEPLOY" 'deployStabilityFeeTreasury()'
-sethSend "$GEB_DEPLOY" 'deployLiquidator()'
-sethSend "$GEB_DEPLOY" 'deployShutdown(address, address, address, uint256)' "$GEB_PROT" "0x0000000000000000000000000000000000000000" "0x0000000000000000000000000000000000000000" "10"
+    sethSend "$GEB_DEPLOY" 'deployPause(uint256, address)' "0" "$GEB_PAUSE_AUTHORITY"
 
-sethSend "$GEB_DEPLOY" 'deployPause(uint256, address)' "0" "$GEB_PAUSE_AUTHORITY"
-
-eval "export VAL_DEPLOY=${contract}"
-
-
-GEB_SAFE_ENGINE="$(seth call "$GEB_DEPLOY" "safeEngine()(address)")"
-GEB_TAX_COLLECTOR="$(seth call "$GEB_DEPLOY" "taxCollector()(address)")"
-GEB_ACCOUNTING_ENGINE="$(seth call "$GEB_DEPLOY" "accountingEngine()(address)")"
-GEB_LIQUIDATION_ENGINE="$(seth call "$GEB_DEPLOY" "liquidationEngine()(address)")"
-GEB_STABILITY_FEE_TREASURY="$(seth call "$GEB_DEPLOY" "stabilityFeeTreasury()(address)")"
-GEB_COIN="$(seth call "$GEB_DEPLOY" "coin()(address)")"
-GEB_COIN_JOIN="$(seth call "$GEB_DEPLOY" "coinJoin()(address)")"
-GEB_RECYCLING_SURPLUS_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "recyclingSurplusAuctionHouse()(address)")"
-GEB_BURNING_SURPLUS_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "burningSurplusAuctionHouse()(address)")"
-GEB_DEBT_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "debtAuctionHouse()(address)")"
-GEB_ORACLE_RELAYER="$(seth call "$GEB_DEPLOY" "oracleRelayer()(address)")"
-GEB_COIN_SAVINGS_ACCOUNT="$(seth call "$GEB_DEPLOY" "coinSavingsAccount()(address)")"
-GEB_GLOBAL_SETTLEMENT="$(seth call "$GEB_DEPLOY" "globalSettlement()(address)")"
-GEB_ESM="$(seth call "$GEB_DEPLOY" "esm()(address)")"
-GEB_PAUSE="$(seth call "$GEB_DEPLOY" "pause()(address)")"
-GEB_PROTEST_PAUSE="$(seth call "$GEB_DEPLOY" "protestPause()(address)")"
-
-FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface)"
+    eval "export VAL_DEPLOY=${contract}"
 
 
-sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_MULTISIG" true
-sethSend "$GEB_DEPLOY" 'giveControl(address)' "$GEB_PAUSE"
+    GEB_SAFE_ENGINE="$(seth call "$GEB_DEPLOY" "safeEngine()(address)")"
+    GEB_TAX_COLLECTOR="$(seth call "$GEB_DEPLOY" "taxCollector()(address)")"
+    GEB_ACCOUNTING_ENGINE="$(seth call "$GEB_DEPLOY" "accountingEngine()(address)")"
+    GEB_LIQUIDATION_ENGINE="$(seth call "$GEB_DEPLOY" "liquidationEngine()(address)")"
+    GEB_STABILITY_FEE_TREASURY="$(seth call "$GEB_DEPLOY" "stabilityFeeTreasury()(address)")"
+    GEB_COIN="$(seth call "$GEB_DEPLOY" "coin()(address)")"
+    GEB_COIN_JOIN="$(seth call "$GEB_DEPLOY" "coinJoin()(address)")"
+    GEB_RECYCLING_SURPLUS_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "recyclingSurplusAuctionHouse()(address)")"
+    GEB_BURNING_SURPLUS_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "burningSurplusAuctionHouse()(address)")"
+    GEB_DEBT_AUCTION_HOUSE="$(seth call "$GEB_DEPLOY" "debtAuctionHouse()(address)")"
+    GEB_ORACLE_RELAYER="$(seth call "$GEB_DEPLOY" "oracleRelayer()(address)")"
+    GEB_COIN_SAVINGS_ACCOUNT="$(seth call "$GEB_DEPLOY" "coinSavingsAccount()(address)")"
+    GEB_GLOBAL_SETTLEMENT="$(seth call "$GEB_DEPLOY" "globalSettlement()(address)")"
+    GEB_ESM="$(seth call "$GEB_DEPLOY" "esm()(address)")"
+    GEB_PAUSE="$(seth call "$GEB_DEPLOY" "pause()(address)")"
+    GEB_PROTEST_PAUSE="$(seth call "$GEB_DEPLOY" "protestPause()(address)")"
 
-sethSend "$GEB_DEPLOY" 'giveControl(address)' "$ETH_FROM"
+    FSM_GOV_INTERFACE="$(dappCreate geb-fsm-governance-interface FsmGovernanceInterface)"
 
 
-cat > "$OUT_DIR/load-core-addr-temp" <<EOF
+    sethSend "$GEB_PAUSE_AUTHORITY" 'setRootUser(address, bool)' "$GEB_MULTISIG" true
+    sethSend "$GEB_DEPLOY" 'giveControl(address)' "$GEB_PAUSE"
+    sethSend "$GEB_DEPLOY" 'giveControl(address)' "$ETH_FROM"
+
+    cat > "$OUT_DIR/load-core-addr-temp" <<EOF
 #!/bin/bash
 export GEB_PROT=$GEB_PROT
 export GEB_SAFE_ENGINE=$GEB_SAFE_ENGINE
@@ -245,34 +235,33 @@ export GEB_GOV_ACTIONS=$GEB_GOV_ACTIONS
 export PROXY_DEPLOYER=$PROXY_DEPLOYER
 export FSM_GOV_INTERFACE=$FSM_GOV_INTERFACE
 EOF
+fi
 
 
 
 # ================== Peripherials ===========================
 
-sethSend "$GEB_DEPLOY" 'giveControl(address)' "$PROXY_DEPLOYER"
+echo "Deploy other systems"
+if [[ -z $GEB_REDEMPTION_PRICE_SNAP ]]; then
+    sethSend "$GEB_DEPLOY" 'giveControl(address)' "$PROXY_DEPLOYER"
 
-GEB_SAFE_MANAGER="$(dappCreate geb-safe-manager GebSafeManager "$GEB_SAFE_ENGINE")"
-GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
+    GEB_SAFE_MANAGER="$(dappCreate geb-safe-manager GebSafeManager "$GEB_SAFE_ENGINE")"
+    GET_SAFES="$(dappCreate geb-safe-manager GetSafes)"
 
-sethSend "$FSM_GOV_INTERFACE" 'setOwner(address)' "$PROXY_DEPLOYER"
+    sethSend "$FSM_GOV_INTERFACE" 'setOwner(address)' "$PROXY_DEPLOYER"
 
-"$LIBEXEC_DIR"/H2O-core/deploy-coin-oracle
+    "$LIBEXEC_DIR"/H2O-core/deploy-coin-oracle
+    "$LIBEXEC_DIR"/H2O-core/deploy-rate-setter
+    "$LIBEXEC_DIR"/H2O-core/deploy-ceiling-setter
+    "$LIBEXEC_DIR"/H2O-core/deploy-auction-throttler
+    "$LIBEXEC_DIR"/H2O-core/deploy-keeper-flash-proxy
+    "$LIBEXEC_DIR"/H2O-core/deploy-proto-auth
 
-"$LIBEXEC_DIR"/H2O-core/deploy-rate-setter
+    # saveCooldown
+    SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
 
-"$LIBEXEC_DIR"/H2O-core/deploy-ceiling-setter
-
-"$LIBEXEC_DIR"/H2O-core/deploy-auction-throttler
-
-"$LIBEXEC_DIR"/H2O-core/deploy-keeper-flash-proxy
-
-"$LIBEXEC_DIR"/H2O-core/deploy-proto-auth
-
-# saveCooldown
-SAFE_SAVIOUR_REGISTRY="$(dappCreate geb-safe-saviours SAFESaviourRegistry "3600")"
-
-GEB_REDEMPTION_PRICE_SNAP=$(dappCreate geb-redemption-price-snap RedemptionPriceSnap "$GEB_ORACLE_RELAYER")
+    GEB_REDEMPTION_PRICE_SNAP=$(dappCreate geb-redemption-price-snap RedemptionPriceSnap "$GEB_ORACLE_RELAYER")
+fi
 
 # Generate addresses.json file
 # shellcheck disable=SC2153
@@ -323,24 +312,16 @@ EOF
 
 # ================== Core ===========================
 
+echo "Deploy other core"
 "$LIBEXEC_DIR"/setters/set-oracle-relayer-params
-
 "$LIBEXEC_DIR"/setters/set-safe-engine-params
-
 "$LIBEXEC_DIR"/setters/set-accounting-engine-params
-
 "$LIBEXEC_DIR"/H2O-core/deploy-collaterals
-
 "$LIBEXEC_DIR"/setters/set-collateral-auction-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-tax-collector-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-safe-engine-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-liquidation-engine-params
-
 "$LIBEXEC_DIR"/setters/set-collateral-oracle-relayer-params
-
 "$LIBEXEC_DIR"/H2O-core/deploy-staking
 
 sethSend "$GEB_DEPLOY" 'takeControl(address)' "$ETH_FROM"

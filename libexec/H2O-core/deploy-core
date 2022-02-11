@@ -21,7 +21,7 @@
 # If no Governance token is defined, create one
 if [ -z "$GEB_GOV" ]
 then
-    GEB_GOV=$(dappCreate ds-token DSToken '"AQA"')
+    GEB_GOV=$(dappCreate ds-token DSToken '"BGT"')
     logAddr "GEB_GOV" "$GEB_GOV"
 fi
 

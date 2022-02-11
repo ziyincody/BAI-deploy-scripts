@@ -29,7 +29,7 @@ test -z "$1" && echo "Missing network" && help
 
 RPC_CHAIN="$(seth chain)"
 if [[ "$RPC_CHAIN" == "unknown" ]]; then
-    RPC_CHAIN="mumbai"
+    RPC_CHAIN="testchain"
 elif [[ "$RPC_CHAIN" == "ethlive" ]]; then
     RPC_CHAIN="main"
 fi
@@ -56,7 +56,7 @@ while getopts "c:f:" opt; do
     esac
 done
 echo $LIB_DIR
-# shellcheck source=lib/common.sh
+
 . "$LIB_DIR/common.sh"
 
 writeConfigFor "$1"

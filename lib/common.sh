@@ -46,6 +46,7 @@ writeConfigFor() {
     else
         cp "$CONFIG_DIR/$1.json" "$CONFIG_FILE"
     fi
+    touch "$ADDRESSES_FILE"
 }
 
 # loads addresses as key-value pairs from $ADDRESSES_FILE and exports them as
@@ -150,7 +151,7 @@ readValue() {
 
 
 dappCreate() {
-    set -e
+    # set -e
     local lib; lib=$1
     local class; class=$2
     ETH_NONCE=$(cat "$NONCE_TMP_FILE")
@@ -167,36 +168,13 @@ dappCreate() {
     echo "===================" >> run.log
     address=$(DAPP_OUT="$DAPP_LIB/$lib/out" ETH_NONCE="$ETH_NONCE" dapp create "$class" "${@:3}")
     echo "$REAL_PATH\t$CONTRACT_PATH\t$address" >> env.log
-    ( cd "$REAL_PATH"; set +o pipefail ; dapp verify-contract "$CONTRACT_PATH" $address "${@:3}" | true ) &> /dev/null &
+    echo "$address"
+    (DAPP_OUT="$DAPP_LIB/$lib/out" dapp verify-contract "$CONTRACT_PATH" $address "${@:3}")
+    #( cd "$REAL_PATH"; set +o pipefail ; dapp verify-contract "$CONTRACT_PATH" $address "${@:3}" | true ) &> /dev/null &
     echo $((ETH_NONCE + 1)) > "$NONCE_TMP_FILE"
     copy "$lib"
-    echo "$address"
+    
 }
-
-
-# verify() {
-#     set -e
-#     local lib; lib=$1
-#     local class; class=$2
-#     ETH_NONCE=$(cat "$NONCE_TMP_FILE")
-#     echo "===================" >> run.log
-
-#     # mapfile -t contracts < <(<"$DAPP_JSON" jq '.contracts|keys[]' -r)
-#     REAL_PATH="$(find "$DAPP_LIB/$lib/out" \
-#         -name "dapp.sol.json" \
-#         -type l -ls | sed 's/.*-> //g' | grep dapp.sol.json | sed 's/\/out\/dapp\.sol\.json//g')"
-#     CONTRACT_PATH="$(<"$DAPP_LIB/$lib/out/dapp.sol.json" jq -c '.contracts|keys[]' -r | grep ":$class$")"
-#         #-exec cp -f {} "$DIR" \;
-#     echo "$DAPP_LIB/$lib/out" >> run.log
-#     echo "$CONTRACT_PATH" >> run.log
-#     echo "===================" >> run.log
-#     address=$(DAPP_OUT="$DAPP_LIB/$lib/out" ETH_NONCE="$ETH_NONCE" dapp create "$class" "${@:3}")
-#     echo "$REAL_PATH\t$CONTRACT_PATH\t$address" >> env.log
-#     ( cd "$REAL_PATH"; set +o pipefail ; dapp verify-contract "$CONTRACT_PATH" $address "${@:3}" | true ) &> /dev/null &
-#     echo $((ETH_NONCE + 1)) > "$NONCE_TMP_FILE"
-#     copy "$lib"
-#     echo "$address"
-# }
 
 sethSend() {
     set -e

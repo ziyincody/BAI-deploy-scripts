@@ -3,10 +3,10 @@
     "import": {
         "esm_threshold_setter": "0x0000000000000000000000000000000000000000",
         "faucet": "0x0000000000000000000000000000000000000000",
-        "uniswap_factory": "0x5757371414417b8c6caad45baef941abc7d3ab32",
-        "uniswap_router": "0x8954AfA98594b838bda56FE4C12a09D7739D179b",
-        "chainlink_eth_usd": "0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada",
-        "weth": "0x9c3c9283d3e44854697cd22d3faa240cfb032889"
+        "uniswap_factory": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+        "uniswap_router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+        "chainlink_eth_usd": "0x8A753747A1Fa494EC906cE90E9f37563A8AF630e",
+        "weth": "0xc778417E063141139Fce010982780140Aa0cD5Ab"
     },
     "uniswap": {
         "coin_to_deposit_pool": "800",
@@ -30,8 +30,8 @@
     },
     "protocol_token": {
         "deploy": "1",
-        "symbol": "AQA",
-        "name": "AQA governance Token",
+        "symbol": "BGT",
+        "name": "BGT governance Token",
         "type": "Delegate",
         "staking": {
             "reward_timeline": {
@@ -129,7 +129,7 @@
                 }
             },
             "uniswap": {
-                "denomination_token_symbol": "OCEAN",
+                "denomination_token_symbol": "ETH",
                 "denomination_token_address": "0",
                 "default_amount_in": "1000000000000000000",
                 "window_size": "259200",
@@ -215,7 +215,7 @@
     "tax_collector": {
         "global_stability_fee": "0",
         "max_secondary_receivers": "4",
-        "OCEAN-A annual stablity fee": "-0.5"
+        "ETH-A annual stablity fee": "-0.5"
     },
     "coin_savings_account": {
         "savings_rate": "0"
@@ -417,8 +417,8 @@
     },
     "coin": {
         "type": "INDEX",
-        "name": "H20 index",
-        "symbol": "H20",
+        "name": "BAI index",
+        "symbol": "BAI",
         "oracle_deploy": {
             "type": "UniswapConsecutiveSlots",
             "fsm_addr": "0",
@@ -538,15 +538,15 @@
         }
     },
     "tokens": {
-        "OCEAN": {
+        "ETH": {
             "import": {
                 "gem": ""
             },
             "test_gem_deploy": {
                 "src": "ds-token/DSToken",
                 "params": [
-                    "\"OCEAN\"",
-                    "\"OCEAN\""
+                    "\"ETH\"",
+                    "\"ETH\""
                 ],
                 "faucetSupply": "990000000000000000000000",
                 "faucetAmount": "50000000000000000000"

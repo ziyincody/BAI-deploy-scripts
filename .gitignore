@@ -15,3 +15,5 @@ secrets
 .env
 .pwd
 .sethrc
+*.log
+password

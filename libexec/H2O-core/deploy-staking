@@ -78,7 +78,7 @@ STAKING_REWARDS_REFILLER="$(dappCreate geb-stake-reward-refill StakeRewardRefill
 
 sethSend "$STAKING" "modifyParameters(bytes32,address)" "$(seth --to-bytes32 "$(seth --from-ascii "escrow")")" "$STAKING_REWARDS_ESCROW"
 sethSend "$STAKING_REWARD_ADJUSTER" "modifyParameters(bytes32,address)" "$(seth --to-bytes32 "$(seth --from-ascii "requestor")")" "$STAKING"
-sethSend "$GEB_STAKING_PROT" "setOwner(address)" "$STAKING"
+sethSend "$STAKING_TOKEN" "setOwner(address)" "$STAKING"
 
 ### Fill refiller with GEB_PROT
 
