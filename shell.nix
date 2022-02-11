@@ -29,7 +29,6 @@ in mkShell {
     #export ETH_RPC_URL=http://127.0.0.1:8545/
     #export ETH_RPC_ACCOUNTS=yes
     export ETH_FROM=0x472535d691C9cA0856E4A643252DedE2C0B8a3e2
-    
 
     setup-env() {
       . ${dds}/lib/setup-env.sh
